@@ -30,7 +30,11 @@ public class ArticleParser {
 	private String confId = null;
 	private String volId = null;
 	private PubmedDump dumpCreator = null;
+	private IDGenerator idGenerator = null;
 
+	/**
+	 * Static initializer to create document factory 
+	 */
 	static {
 		try {
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
@@ -56,12 +60,23 @@ public class ArticleParser {
 		}
 	}
 
-	public ArticleParser(String fileName) throws SAXException, IOException {
+	/**
+	 * 
+	 * @param fileName - XML file name
+	 * @param idGenerator - 
+	 * @throws SAXException throws SAXException if XPath evaluation fails
+	 * @throws IOException throws IOException if file not found  
+	 */
+	public ArticleParser(String fileName, IDGenerator idGenerator) throws SAXException, IOException {
 		this.fileName = fileName;
 		this.document = documentBuilder.parse(fileName);
 		this.document.getDocumentElement().normalize();
+		this.idGenerator = idGenerator;
 	}
 
+	/**
+	 * Parse the XML file and extracts all the required values 
+	 */
 	public void parse() {
 		Element articleMeta = (Element) document.getElementsByTagName(
 				"article-meta").item(0);
@@ -165,7 +180,7 @@ public class ArticleParser {
 						confNum = textContent;
 					}
 				}
-			   confId = IDGenerator.generateConferenceId(confName , confNum);
+			   confId = idGenerator.generateConferenceId(confName , confNum);
 			   dumpCreator.addToConference(confId,confDate,confName,confNum,confLoc,confSponsor,confTheme,confAcronym);
 			  
 			}
@@ -271,7 +286,7 @@ public class ArticleParser {
 			categoryNodes = articleMeta.getElementsByTagName("subj-group");
 			for (int index = 0; index < categoryNodes.getLength(); index++) {
 			categoryElem = (Element) categoryNodes.item(index);
-			categoryId = IDGenerator.getCategoryId(categoryElem.getFirstChild()
+			categoryId = idGenerator.getCategoryId(categoryElem.getFirstChild()
 						.getTextContent());
 			dumpCreator.addToCategoryReference(pubmedId, categoryId);
 			if (categoryElem.getChildNodes().getLength() > 1) {
@@ -290,7 +305,7 @@ public class ArticleParser {
 	 */
 		private void setSubCategories(Node lastChild, String categoryId) {			
 			String subCategoryId = null;
-			subCategoryId = IDGenerator.getCategoryId(lastChild.getFirstChild().getNodeValue());
+			subCategoryId = idGenerator.getCategoryId(lastChild.getFirstChild().getNodeValue());
 			dumpCreator.addToCategory(subCategoryId, categoryId, lastChild.getFirstChild().getNodeValue(), null, null);
 			if (lastChild.getChildNodes().getLength() > 1) {
 				setSubCategories(lastChild.getLastChild(), subCategoryId);
@@ -324,7 +339,7 @@ public class ArticleParser {
 				keyWord = formatString(keyWord);
 				if (keyWord != null && keyWord.length() < 200
 						&& uniqueKeyWords.add(keyWord)) {
-					keywordId = IDGenerator.generateKeywordId(keyWord);
+					keywordId = idGenerator.generateKeywordId(keyWord);
 					dumpCreator.addToKeyWordDump(pubmedId, keywordId);
 
 				}
@@ -358,7 +373,7 @@ public class ArticleParser {
 					givenName = ((Element) contributor.getElementsByTagName(
 							"given-names").item(0)).getTextContent();
 					if (surName != null && givenName != null) {
-						authorId = IDGenerator.getAuthorId(givenName, surName);
+						authorId = idGenerator.getAuthorId(givenName, surName);
 						dumpCreator.addToAuthorReferences(pubmedId, authorId);
 					}
 				}
