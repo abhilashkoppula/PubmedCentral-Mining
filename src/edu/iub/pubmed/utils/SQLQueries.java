@@ -1,5 +1,11 @@
 package edu.iub.pubmed.utils;
 
+/**
+ * Insert SQL Queries for the pubmed tables
+ * 
+ * @author Abhilash(akoppula@indiana.edu)
+ *
+ */
 public interface SQLQueries {
 	
 	public static final String QUERY_INSERT_ARTICLE_TABLE = "INSERT INTO article VALUES ";	

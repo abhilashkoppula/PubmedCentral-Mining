@@ -80,7 +80,7 @@ public class PubmedCentral {
 		pubmedDump.createDump(); // To dump the last values
 		LOGGER.log(Level.INFO, "Completed parsing and loading of the dataset");
 		LOGGER.log(Level.INFO, "Removing pubmed nodes from graph which doesnt have article data");
-		graphDelegator.removeNonPubmedCentralNodes();
+		//graphDelegator.removeNonPubmedCentralNodes();
 		LOGGER.log(Level.INFO, "Completed Dataset loading and Graph creation");
 	}
 

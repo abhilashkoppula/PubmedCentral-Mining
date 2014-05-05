@@ -6,6 +6,12 @@ import java.util.logging.Logger;
 
 import edu.iub.pubmed.utils.Constants;
 
+
+/**
+ * Delegator class for the graph classes
+ * @author Abhilash(akoppula@indiana.edu)
+ *
+ */
 public class GraphDelegator {
 	
 	static final Logger LOGGER = Logger.getLogger(Constants.LOGGER_NAME);
@@ -18,6 +24,15 @@ public class GraphDelegator {
 		hetroGraph = new HetrogeneousGraph();
 	}
 	
+	/**
+	 * Delegates call to update methods of both the graphs
+	 * 
+	 * @param pubmedId - pubmed Id
+	 * @param keywords - list of keywords
+	 * @param citations - map of citations and edge weights
+	 * 
+	 * 
+	 */
 	public void updateGraph(String pubmedId ,  Set<String> keywords , Map<String,Double> citations){
 		LOGGER.fine("Updating Relevance Graph");
 		relevanceGraph.updateGraph(pubmedId, citations	, keywords);
@@ -25,8 +40,5 @@ public class GraphDelegator {
 		hetroGraph.updateGraph(pubmedId, citations	, keywords);
 	}
 	
-	public void removeNonPubmedCentralNodes(){
-		
-	}
 
 }

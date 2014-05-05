@@ -22,7 +22,12 @@ import edu.iub.pubmed.dump.IDGenerator;
 import edu.iub.pubmed.dump.PubmedDump;
 import edu.iub.pubmed.exceptions.NoPubmedIdException;
 
-
+/**
+ *  Pubmed XML Parser Class
+ * 
+ * @author Abhilash(akoppula@indiana.edu)
+ *
+ */
 
 public class ArticleParser {
 
@@ -252,8 +257,7 @@ public class ArticleParser {
 				issue = issueElement.getTextContent();
 			}
 			
-			
-			//dumpCreator.addToVolume(volumeId, volume.getTextContent(), issue.getTextContent(), null, issueTitle.getTextContent(), null, null, volumeId); 
+			volId = idGenerator.getVolumeId(journalTitle, journalId, volume, issue, publisherName);
 			
 		} catch (Exception ex) {
 			LOGGER.warning("Exception while parsing Volume Information "	+ fileName);
@@ -311,9 +315,7 @@ public class ArticleParser {
 						confNum = textContent;
 					}
 				}
-			   confId = idGenerator.generateConferenceId(confName , confNum);
-			   dumpCreator.addToConference(confId,confDate,confName,confNum,confLoc,confSponsor,confTheme,confAcronym);
-			  
+			   confId = idGenerator.generateConferenceId(confDate,confName,confNum,confLoc,confSponsor,confTheme,confAcronym);			  
 			}
 		}catch(Exception ex){
 			LOGGER.warning("Exception while parsing conference element for article :: " + fileName);
@@ -364,14 +366,17 @@ public class ArticleParser {
 		abstractText = getAbstractText(articleMeta);
 		pubDate = getPubDate(articleMeta);
 		
-	   dumpCreator.addToArticle(pubmedId, null, articleTitle, null, abstractText, confId, null, volId);
+	   dumpCreator.addToArticleValues(pubmedId, pubDate.toString(), articleTitle,  abstractText, confId,  volId);
 	}
 	
 	
 	
 	
-	
-	
+	/**
+	 * Retrieves pubDate from article-meta	
+	 * @param articleMeta
+	 * @return
+	 */
 	private Date getPubDate(Element articleMeta) {
 		Element pubDateElement = null;
 		
@@ -454,7 +459,7 @@ public class ArticleParser {
 			categoryElem = (Element) categoryNodes.item(index);
 			categoryId = idGenerator.getCategoryId(categoryElem.getFirstChild()
 						.getTextContent());
-			dumpCreator.addToCategoryReference(pubmedId, categoryId);
+			dumpCreator.addToCategoryReferenceValues(pubmedId, categoryId);
 			if (categoryElem.getChildNodes().getLength() > 1) {
 				setSubCategories(categoryElem.getLastChild(), categoryId);
 			}
@@ -472,7 +477,7 @@ public class ArticleParser {
 		private void setSubCategories(Node lastChild, String categoryId) {			
 			String subCategoryId = null;
 			subCategoryId = idGenerator.getCategoryId(lastChild.getFirstChild().getNodeValue());
-			dumpCreator.addToCategory(subCategoryId, categoryId, lastChild.getFirstChild().getNodeValue(), null, null);
+			dumpCreator.addToCategoryValues(subCategoryId, categoryId, lastChild.getFirstChild().getNodeValue(), null, null);
 			if (lastChild.getChildNodes().getLength() > 1) {
 				setSubCategories(lastChild.getLastChild(), subCategoryId);
 			}
@@ -505,7 +510,7 @@ public class ArticleParser {
 				if (keyWord != null && keyWord.length() < 200
 						&& uniqueKeyWords.add(keyWord)) {
 					keywordId = idGenerator.generateKeywordId(keyWord);
-					dumpCreator.addToKeyWordDump(pubmedId, keywordId);
+					dumpCreator.addToKeyWordValues(pubmedId, keywordId);
 
 				}
 			}
@@ -539,7 +544,7 @@ public class ArticleParser {
 							"given-names").item(0)).getTextContent();
 					if (surName != null && givenName != null) {
 						authorId = idGenerator.getAuthorId(givenName, surName);
-						dumpCreator.addToAuthorReferences(pubmedId, authorId);
+						dumpCreator.addToAuthorReferenceValues(pubmedId, authorId);
 					}
 				}
 			} catch (NullPointerException ex) {
