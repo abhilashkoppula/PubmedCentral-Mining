@@ -34,4 +34,4 @@ Running
 [Neo4j-1]:http://docs.neo4j.org/chunked/stable/tutorials-java-embedded-setup.html
 [Neo4j-2]:http://fooo.fr/~vjeux/github/github-recommandation/db/doc/manual/html/server-embedded.html
 [Jung]:http://jung.sourceforge.net/download.html
-[Blueprints]:http://fooo.fr/~vjeux/github/github-recommandation/db/doc/manual/html/server-embedded.html
+[Blueprints]:https://github.com/tinkerpop/blueprints/wiki
