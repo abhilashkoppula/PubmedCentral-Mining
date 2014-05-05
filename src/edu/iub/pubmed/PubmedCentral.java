@@ -34,8 +34,8 @@ public class PubmedCentral {
 	public static Set<String> pubmedIds = new HashSet<>();
 
 	public PubmedCentral(String dumpfilesPath) {
-		idGenerator = new IDGenerator();
 		pubmedDump = new PubmedDump(dumpfilesPath);
+		idGenerator = new IDGenerator(pubmedDump);
 		graphDelegator = new GraphDelegator();
 	}
 

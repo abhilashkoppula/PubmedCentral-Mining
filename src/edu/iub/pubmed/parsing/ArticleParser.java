@@ -117,7 +117,7 @@ public class ArticleParser {
 	 * @return - map of citations and their frequencies
 	 *
 	 */
-	public Map<String, Integer> findRefFrequency(Document document) {
+	private Map<String, Integer> findRefFrequency(Document document) {
 		Map<String, Integer> refCount = null;
 		NodeList xRefNodes = document.getElementsByTagName("xref");
 		int noOfXRefNodes = xRefNodes.getLength();
@@ -560,7 +560,7 @@ public class ArticleParser {
 	 * @param actualWord - actual keyword
 	 * @return String - formatted keyword
 	 */
-	public String formatString(String actualWord) {
+	private String formatString(String actualWord) {
 		String formatKeyword = null;
 		if (actualWord != null) {
 			formatKeyword = actualWord.toLowerCase().trim();

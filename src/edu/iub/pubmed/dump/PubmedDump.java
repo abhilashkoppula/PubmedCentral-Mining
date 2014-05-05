@@ -61,7 +61,7 @@ public class PubmedDump {
 	/**
 	 * Adds the given values to 'author_reference' table insert values.
 	 * @param pubmedId - pubmedId of article
-	 * @param authorId- authorId from article table
+	 * @param authorId - authorId from article table
 	 */
 	public void addToAuthorReferenceValues(String pubmedId , String authorId){
 		String values = String.format(SQLQueries.QUERY_VALUES_AUTHOR_REFERENCE_TABLE, pubmedId, authorId);
