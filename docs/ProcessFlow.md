@@ -74,3 +74,11 @@ Each XML file in the dataset is parsed to extract the required fields to create 
 
  [DumpFile]:https://github.com/abhilashkoppula/PubmedCentral-Mining/blob/master/docs/keyword_2014-4-11-02-36-651.sql
 
+
+### Updating Graph
+     edu.iub.pubmed.graph.GraphDelegator
+
++ After successfull parsing of a XML file , both [Relevant and Hetrogeneous graphs][graphs] are updated by passing pubmedId of the XML file , keywords used in the file and pubmed citaions .
+
+
+[graphs]: https://github.com/abhilashkoppula/PubmedCentral-Mining/blob/master/docs/graph.md
