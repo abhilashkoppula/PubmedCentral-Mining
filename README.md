@@ -1,7 +1,7 @@
 PubmedCentral-Mining
 ====================
 
-More information regarding process flow and different components can be found in docs folder . 
+More information regarding process flow and different components can be found in [**docs**][docs] folder . 
 
 Compilation 
 -------------------
@@ -35,3 +35,4 @@ Running
 [Neo4j-2]:http://fooo.fr/~vjeux/github/github-recommandation/db/doc/manual/html/server-embedded.html
 [Jung]:http://jung.sourceforge.net/download.html
 [Blueprints]:https://github.com/tinkerpop/blueprints/wiki
+[docs]:https://github.com/abhilashkoppula/PubmedCentral-Mining/tree/master/docs
