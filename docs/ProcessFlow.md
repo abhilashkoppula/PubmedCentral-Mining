@@ -70,7 +70,7 @@ Each XML file in the dataset is parsed to extract the required fields to create 
 
 + Each dump file have name in the format 'tablename_currentTime.sql'
 
-+ Sample Dump File - [KeyWord Table Dump][]
++ Sample Dump File - [KeyWord Table Dump][DumpFile]
 
+ [DumpFile]:https://github.com/abhilashkoppula/PubmedCentral-Mining/blob/master/docs/keyword_2014-4-11-02-36-651.sql]
 
- 
