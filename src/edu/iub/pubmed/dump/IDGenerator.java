@@ -112,13 +112,14 @@ public class IDGenerator {
 	 * @param subject - subject of category
 	 * @return - generated Id for this category
 	 */
-	public  String getCategoryId(String subject){
+	public  String getCategoryId(String subject , String parentCategory){
 		Long categoryId = null;
-		categoryId = category_ids.get(subject);
+		String key = subject + "-" + parentCategory;
+		categoryId = category_ids.get(key);
 		if (categoryId == null) {
 			categoryId = ++keywodIDSequence;
-			category_ids.put(subject, categoryId);
-			//dump.addToCategory(categoryId, parentCategory, subj, seriesTitle, seriesText);(String.valueOf(categoryId), subject);
+			category_ids.put(key, categoryId);
+			pubmedDump.addToCategoryValues(String.valueOf(categoryId), parentCategory, subject);
 		}			
 		return String.valueOf(categoryId);		
 	}

@@ -8,19 +8,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
 import edu.iub.pubmed.dump.IDGenerator;
 import edu.iub.pubmed.dump.PubmedDump;
 import edu.iub.pubmed.exceptions.NoPubmedIdException;
+import edu.iub.pubmed.utils.UtilityMethods;
 
 /**
  *  Pubmed XML Parser Class
@@ -79,11 +84,12 @@ public class ArticleParser {
 	 * @throws SAXException throws SAXException if XPath evaluation fails
 	 * @throws IOException throws IOException if file not found  
 	 */
-	public ArticleParser(String fileName, IDGenerator idGenerator) throws SAXException, IOException {
+	public ArticleParser(String fileName, IDGenerator idGenerator , PubmedDump pubmedDump) throws SAXException, IOException {
 		this.fileName = fileName;
 		this.document = documentBuilder.parse(fileName);
 		this.document.getDocumentElement().normalize();
 		this.idGenerator = idGenerator;
+		this.dumpCreator = pubmedDump;
 	}
 
 	/**
@@ -91,24 +97,25 @@ public class ArticleParser {
 	 * @throws Exception 
 	 */
 	public void parse() throws Exception {
-		Element articleMeta = (Element) document.getElementsByTagName(
-				"article-meta").item(0);
-		
-		extractConference(articleMeta);
-		extractVolume(document);
-		extractArticlemeta(articleMeta);		
-		extractAuthor(articleMeta);
-		extractCategories(articleMeta);
-		extractKeyWords(articleMeta);
-		extractPubmedRef(document);
-	
-		document = null;
+		Element articleMeta = null;
+
+		try {
+			articleMeta = (Element) document.getElementsByTagName(
+					"article-meta").item(0);
+			extractConference(articleMeta);
+			extractVolume(document);
+			extractArticlemeta(articleMeta);
+			extractAuthor(articleMeta);
+			extractCategories(articleMeta);
+			extractKeyWords(articleMeta);
+			extractPubmedRef(document);
+
+			document = null;
+		} catch (Exception ex) {
+			LOGGER.log(Level.SEVERE,"Exception while parsing {0} and discarding this file",new Object[]{fileName});
+			ex.printStackTrace();
+		}
 	}
-
-
-	
-	
-	
 	/**
 	 * Calculates how many times each citation is cited in the paper
 	 * 
@@ -168,7 +175,6 @@ public class ArticleParser {
 		refValues = new HashMap<>();
 		double totalWeight = 1d / document.getElementsByTagName("xref")
 				.getLength();
-
 		try {
 			refFreq = findRefFrequency(document);
 			NodeList refNodes = document.getElementsByTagName("ref");
@@ -189,7 +195,7 @@ public class ArticleParser {
 								if (refFreq.get(refId) != null) {
 									double weight = totalWeight
 											* refFreq.get(refId);
-									refValues.put(pubMedCitation,weight);
+									refValues.put(pubMedCitation, weight);
 								}
 							}
 							break;
@@ -204,7 +210,6 @@ public class ArticleParser {
 			ex.printStackTrace();
 			throw ex;
 		}
-		
 	}
 
 	/**
@@ -230,13 +235,13 @@ public class ArticleParser {
 		Element journalMeta = null;
 		
 		try {
-			articleMeta = (Element) document.getElementsByTagName("article-meta");
-			journalMeta = (Element) document.getElementsByTagName("journal-meta");
+			articleMeta = (Element) document.getElementsByTagName("article-meta").item(0);;
+			journalMeta = (Element) document.getElementsByTagName("journal-meta").item(0);;
 			Element journalIdElement = (Element) journalMeta.getElementsByTagName("journal-id").item(0);
-			Element journalTitleElement  = (Element) journalMeta.getElementsByTagName("journal-title");
-			Element publisherNameElement = (Element) journalMeta.getElementsByTagName("publisher-name");
-			Element volumeElement = (Element) articleMeta.getElementsByTagName("volume");
-			Element issueElement = (Element) articleMeta.getElementsByTagName("issue");			
+			Element journalTitleElement  = (Element) journalMeta.getElementsByTagName("journal-title").item(0);
+			Element publisherNameElement = (Element) journalMeta.getElementsByTagName("publisher-name").item(0);
+			Element volumeElement = (Element) articleMeta.getElementsByTagName("volume").item(0);
+			Element issueElement = (Element) articleMeta.getElementsByTagName("issue").item(0);			
 			
 			
 			journalId = journalIdElement.getTextContent();
@@ -275,8 +280,6 @@ public class ArticleParser {
 	 * Conference name and number is identified as a unique conference . 
 	 * 
 	 * @param articleMeta - <article-meta> element
-	 * 
-	 *
 	 */
 	private void extractConference(Element articleMeta) {
 		NodeList conferenceNode = null;
@@ -318,9 +321,9 @@ public class ArticleParser {
 			   confId = idGenerator.generateConferenceId(confDate,confName,confNum,confLoc,confSponsor,confTheme,confAcronym);			  
 			}
 		}catch(Exception ex){
-			LOGGER.warning("Exception while parsing conference element for article :: " + fileName);
-		}
-		
+			LOGGER.warning("Exception while parsing conference element :: " + ex.getMessage());
+			throw ex;
+		}		
 	}
 
 	/**
@@ -328,7 +331,7 @@ public class ArticleParser {
 	 * @return - pubmedId
 	 */
 	public String getPubmedId(){
-		return this.getPubmedId();
+		return this.pubmedId;
 	}
 	
 	
@@ -347,40 +350,37 @@ public class ArticleParser {
 	 * 
 	 */
 	public Map<String,Double> getCitations(){
-		return null;
+		return refValues;
 	}
-	
-	
 	/**
 	 * Extract required details from Article meta
 	 * @param articleMeta
 	 * @throws Exception 
 	 */
 	private void extractArticlemeta(Element articleMeta) throws Exception {
-		String pubmedId = null;
 		String articleTitle = null;
 		String abstractText = null;
-		Date  pubDate = null;
+		String  pubDate = null;
+		try {
 		pubmedId = getPubmedId(articleMeta);
 		articleTitle = getArticleTitle(articleMeta);
 		abstractText = getAbstractText(articleMeta);
 		pubDate = getPubDate(articleMeta);
-		
-	   dumpCreator.addToArticleValues(pubmedId, pubDate.toString(), articleTitle,  abstractText, confId,  volId);
-	}
-	
-	
-	
+		// TO DO pub Date
+		   dumpCreator.addToArticleValues(pubmedId, "", articleTitle, UtilityMethods.formatString(abstractText), confId,  volId);
+		}catch(Exception ex){
+			LOGGER.warning("Exception while parsing article-meta element for article details :: " + ex.getMessage());
+			throw ex;
+		}	
+	}	
 	
 	/**
 	 * Retrieves pubDate from article-meta	
 	 * @param articleMeta
 	 * @return
 	 */
-	private Date getPubDate(Element articleMeta) {
+	private String getPubDate(Element articleMeta) {
 		Element pubDateElement = null;
-		
-		
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -394,7 +394,7 @@ public class ArticleParser {
 	private String getAbstractText(Element articleMeta) {
 		Element abstractElem = (Element) articleMeta.getElementsByTagName("abstract").item(0);
 		String abstractText = abstractElem.getTextContent();
-		return abstractText;
+		return UtilityMethods.formatString(abstractText);
 	}
 
 	/**
@@ -403,8 +403,8 @@ public class ArticleParser {
 	 * @return
 	 */
 	private String getArticleTitle(Element articleMeta) {
-		Element titleGroup = (Element) articleMeta.getElementsByTagName("title-group");
-		Element articleTitle = (Element) titleGroup.getElementsByTagName("article-title");
+		Element titleGroup = (Element) articleMeta.getElementsByTagName("title-group").item(0);
+		Element articleTitle = (Element) titleGroup.getElementsByTagName("article-title").item(0);
 		return articleTitle.getTextContent();
 	}
 	
@@ -429,12 +429,10 @@ public class ArticleParser {
 					pubmedId = articleIdElement.getTextContent();
 					break;
 				}
-			}
-		
+			}		
 			if(pubmedId == null){
 				throw new NoPubmedIdException();
-			}
-		
+			}		
 		} catch(Exception ex){
 			LOGGER.severe("Exception while parsing for Pubmed ID " + fileName);
 			throw ex;
@@ -458,14 +456,15 @@ public class ArticleParser {
 			for (int index = 0; index < categoryNodes.getLength(); index++) {
 			categoryElem = (Element) categoryNodes.item(index);
 			categoryId = idGenerator.getCategoryId(categoryElem.getFirstChild()
-						.getTextContent());
+						.getTextContent() , null);
 			dumpCreator.addToCategoryReferenceValues(pubmedId, categoryId);
 			if (categoryElem.getChildNodes().getLength() > 1) {
 				setSubCategories(categoryElem.getLastChild(), categoryId);
-			}
+				}
 			}
 		}catch(Exception ex){
-			
+			LOGGER.warning("Exception while parsing Cateogry element :: " + ex.getMessage());
+			throw ex;
 		}
 		
 	}
@@ -476,8 +475,8 @@ public class ArticleParser {
 	 */
 		private void setSubCategories(Node lastChild, String categoryId) {			
 			String subCategoryId = null;
-			subCategoryId = idGenerator.getCategoryId(lastChild.getFirstChild().getNodeValue());
-			dumpCreator.addToCategoryValues(subCategoryId, categoryId, lastChild.getFirstChild().getNodeValue(), null, null);
+			subCategoryId = idGenerator.getCategoryId(lastChild.getFirstChild().getNodeValue(),categoryId);
+			dumpCreator.addToCategoryReferenceValues(pubmedId, subCategoryId);
 			if (lastChild.getChildNodes().getLength() > 1) {
 				setSubCategories(lastChild.getLastChild(), subCategoryId);
 			}
@@ -506,16 +505,16 @@ public class ArticleParser {
 			for (int index = 0; index < kwdNodes.getLength(); index++) {
 				Element kwdNode = (Element) kwdNodes.item(index);
 				keyWord = kwdNode.getTextContent();
-				keyWord = formatString(keyWord);
+				keyWord = UtilityMethods.formatString(keyWord);
 				if (keyWord != null && keyWord.length() < 200
 						&& uniqueKeyWords.add(keyWord)) {
 					keywordId = idGenerator.generateKeywordId(keyWord);
 					dumpCreator.addToKeyWordValues(pubmedId, keywordId);
-
 				}
 			}
-
 		} catch (Exception ex) {
+			LOGGER.warning("Exception while parsing Keyword element :: " + ex.getMessage());
+			throw ex;
 		}
 	}
 
@@ -534,9 +533,9 @@ public class ArticleParser {
 		String surName = null;
 		String givenName = null;
 		String authorId = null;
-		for (int index = 0; index < contributors.getLength(); index++) {
-			contributor = (Element) contributors.item(index);
-			try {
+		try {
+			for (int index = 0; index < contributors.getLength(); index++) {
+				contributor = (Element) contributors.item(index);
 				if (contributor.getAttribute("contrib-type").equals("author")) {
 					surName = ((Element) contributor.getElementsByTagName(
 							"surname").item(0)).getTextContent();
@@ -544,29 +543,15 @@ public class ArticleParser {
 							"given-names").item(0)).getTextContent();
 					if (surName != null && givenName != null) {
 						authorId = idGenerator.getAuthorId(givenName, surName);
-						dumpCreator.addToAuthorReferenceValues(pubmedId, authorId);
+						dumpCreator.addToAuthorReferenceValues(pubmedId,
+								authorId);
 					}
 				}
-			} catch (NullPointerException ex) {
-				System.out.println("Some of the require fields are missing");
 			}
+		} catch (Exception ex) {
+			LOGGER.severe("Exception while parsing author information  "
+					+ ex.getMessage());
+			throw ex;
 		}
-
 	}
-	
-	
-	/**
-	 * Formats the given keyword by trimming and removing line breaks
-	 * @param actualWord - actual keyword
-	 * @return String - formatted keyword
-	 */
-	private String formatString(String actualWord) {
-		String formatKeyword = null;
-		if (actualWord != null) {
-			formatKeyword = actualWord.toLowerCase().trim();
-			formatKeyword = formatKeyword.replaceAll("[\\n,\\.]", "");
-		}
-		return formatKeyword;
-	}
-
 }

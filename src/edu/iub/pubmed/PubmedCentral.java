@@ -50,7 +50,7 @@ public class PubmedCentral {
 		ArticleParser articleParser = null;
 		try {
 			LOGGER.log(Level.FINEST,"Parsing file" + fileName);
-			articleParser = new ArticleParser(fileName,idGenerator);
+			articleParser = new ArticleParser(fileName,idGenerator,pubmedDump);
 			articleParser.parse();
 			LOGGER.log(Level.FINEST,"Parsing of {0} successfull ", fileName);
 			if (true) {
@@ -77,7 +77,7 @@ public class PubmedCentral {
 		LOGGER.config("Given dataset location " + datasetPath);
 		datasetOperations = new DatasetOperations(datasetPath, this);
 		datasetOperations.traverseAndLoad(datasetPath);
-		pubmedDump.createDump(); // To dump the last values
+		pubmedDump.dumpRemaining(); // To dump the last values
 		LOGGER.log(Level.INFO, "Completed parsing and loading of the dataset");
 		LOGGER.log(Level.INFO, "Removing pubmed nodes from graph which doesnt have article data");
 		//graphDelegator.removeNonPubmedCentralNodes();

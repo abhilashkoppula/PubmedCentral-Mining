@@ -46,19 +46,37 @@ public class DumpFiles {
 	
 	public DumpFiles(String dumpDirectory){
 		this.dumpDirectory = dumpDirectory;
-		articleFile = createFileName(FILE_PREFIX_ARTICLE);
-		keywordFile = createFileName(FILE_PREFIX_KEYWORD);
-		keywordReferenceFile = createFileName(FILE_PREFIX_KEYWORD_REFERENCE);
-		authorFile = createFileName(FILE_PREFIX_AUTHOR);
-		authorReferenceFile = createFileName(FILE_PREFIX_AUTHOR_REFERENCE);
-		categoryFile = createFileName(FILE_PREFIX_CATEGORY);
-		categoryReferenceFile = createFileName(FILE_PREFIX_CATEGORY_REFERENCE);
-		volumeFile = createFileName(FILE_PREFIX_VOLUME);
-		conferenceFile = createFileName(FILE_PREFIX_CONFERENCE);
-		pumbedReferenceFile = createFileName(FILE_PREFIX_PUBMED_REFERENCE);
+		createDirectories();
+//		articleFile = createFileName(FILE_PREFIX_ARTICLE);
+//		keywordFile = createFileName(FILE_PREFIX_KEYWORD);
+//		keywordReferenceFile = createFileName(FILE_PREFIX_KEYWORD_REFERENCE);
+//		authorFile = createFileName(FILE_PREFIX_AUTHOR);
+//		authorReferenceFile = createFileName(FILE_PREFIX_AUTHOR_REFERENCE);
+//		categoryFile = createFileName(FILE_PREFIX_CATEGORY);
+//		categoryReferenceFile = createFileName(FILE_PREFIX_CATEGORY_REFERENCE);
+//		volumeFile = createFileName(FILE_PREFIX_VOLUME);
+//		conferenceFile = createFileName(FILE_PREFIX_CONFERENCE);
+//		pumbedReferenceFile = createFileName(FILE_PREFIX_PUBMED_REFERENCE);
 		
 	}
 	
+
+	private void createDirectories() {
+		
+		try {
+		new File(dumpDirectory+"\\authors").mkdirs();
+		new File(dumpDirectory+"\\article").mkdirs();
+		new File(dumpDirectory+"\\volume").mkdirs();
+		new File(dumpDirectory+"\\conference").mkdirs();
+		new File(dumpDirectory+"\\keywords").mkdirs();
+		new File(dumpDirectory+"\\category").mkdirs();
+		new File(dumpDirectory+"\\citations").mkdirs();
+		}catch(Exception ex){
+			
+		}
+		
+	}
+
 
 	/**
 	 * Creates a dump file for the given values either by appending to existing file or creating new file . <br>
@@ -78,8 +96,10 @@ public class DumpFiles {
 	 */
 	public String createDump(List<String> values, String dumpFile,
 			String prefix, String initialQuery) throws Exception {
-		if (checkFileSize(dumpFile)) {
+		if (dumpFile == null || checkFileSize(dumpFile)) {
+			if(dumpFile != null){
 			closeDumpFile(dumpFile);
+			}
 			dumpFile = createFileName(prefix);
 			writeToFile(initialQuery, values, dumpFile);
 		} else {
@@ -96,6 +116,7 @@ public class DumpFiles {
 	 * @throws IOException - if file doesnt exist
 	 */
 	private void closeDumpFile(String dumpFile) throws IOException {
+		if(dumpFile != null){
 		try (PrintWriter out = new PrintWriter(new BufferedWriter(
 				new FileWriter(dumpFile, true)))) {
 			out.print(Constants.QUERY_CLOSING_CHARACTER);
@@ -103,8 +124,28 @@ public class DumpFiles {
 			e.printStackTrace();
 			throw e;
 		}
+		}
 		
 	}
+	
+	/**
+	 * Appends ";" to all the dumpfiles. This method is called after processing all the articles
+	 * 
+	 * and to dump the remaining values
+	 */
+	 public void closeAllDumpFiles() throws IOException{
+		 closeDumpFile(articleFile);
+		 closeDumpFile(authorFile);
+		 closeDumpFile(authorReferenceFile);
+		 closeDumpFile(categoryFile);
+		 closeDumpFile(categoryReferenceFile);
+		 closeDumpFile(keywordFile);
+		 closeDumpFile(keywordReferenceFile);
+		 closeDumpFile(volumeFile);
+		 closeDumpFile(conferenceFile);
+		 closeDumpFile(pumbedReferenceFile);
+		 
+	 }
 
 	/**
 	 * Checks the size of the given file and compares with the MAX_DUMP_FILE_SIZE 

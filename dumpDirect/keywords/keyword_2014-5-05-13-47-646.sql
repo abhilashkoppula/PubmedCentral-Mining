@@ -1,0 +1,1 @@
+INSERT INTO keyword VALUES(protein?protein interaction,'1001'),(1001,'22558529'),(synthetic biology,'1002'),(1002,'22558529'),(coiled coil,'1003'),(1003,'22558529'),(heterodimer,'1004'),(1004,'22558529');

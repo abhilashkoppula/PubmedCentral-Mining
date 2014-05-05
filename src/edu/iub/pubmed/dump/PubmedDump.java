@@ -32,7 +32,7 @@ public class PubmedDump {
 		dumpFiles = new DumpFiles(dumpDirectory);
 		articleValues = new ArrayList<>();
 		authorValues = new ArrayList<>();
-		articleValues = new ArrayList<>();
+		volumeValues = new ArrayList<>();
 		authorReferencesValues = new ArrayList<>();
 		keywordValues = new ArrayList<>();
 		keywordReference = new ArrayList<>();
@@ -153,8 +153,8 @@ public class PubmedDump {
 	 * @param seriesTitle
 	 * @param seriesText
 	 */
-	public void addToCategoryValues(String categoryId, String parentCategory,String subj , String seriesTitle , String seriesText){
-		String values = String.format(SQLQueries.QUERY_VALUES_CATEGORY_TABLE, categoryId,parentCategory,subj,seriesTitle,seriesText);
+	public void addToCategoryValues(String categoryId, String parentCategory,String subj ){
+		String values = String.format(SQLQueries.QUERY_VALUES_CATEGORY_TABLE, categoryId,parentCategory,subj);
 		addToList(values,categoryValues);
 	}
 	
@@ -205,62 +205,74 @@ public class PubmedDump {
 		String dumpFile = null;
 		// Dumping authors table
 		dumpFile = dumpFiles.getAuthorFile();
-		dumpFiles.setAuthorFile(createDump(authorValues, dumpFiles.getAuthorFile(), FILE_PREFIX_AUTHOR, SQLQueries.QUERY_INSERT_AUTHOR_TABLE));
+		dumpFile = createDump(authorValues, dumpFiles.getAuthorFile(), FILE_PREFIX_AUTHOR, SQLQueries.QUERY_INSERT_AUTHOR_TABLE);
 		dumpFiles.setAuthorFile(dumpFile);
 	
 		// Dumping author reference table
 		dumpFile = dumpFiles.getAuthorReferenceFile();
-		dumpFile = dumpFiles.createDump(authorReferencesValues, dumpFile, FILE_PREFIX_AUTHOR_REFERENCE, SQLQueries.QUERY_INSERT_AUTHOR_REFERENCE_TABLE);
+		dumpFile = createDump(authorReferencesValues, dumpFile, FILE_PREFIX_AUTHOR_REFERENCE, SQLQueries.QUERY_INSERT_AUTHOR_REFERENCE_TABLE);
 		dumpFiles.setAuthorReferenceFile(dumpFile);
 		
 		// Dumping article table
 		dumpFile = dumpFiles.getArticleFile();
-		dumpFile = dumpFiles.createDump(articleValues, dumpFile, FILE_PREFIX_ARTICLE, SQLQueries.QUERY_INSERT_ARTICLE_TABLE);
+		dumpFile = createDump(articleValues, dumpFile, FILE_PREFIX_ARTICLE, SQLQueries.QUERY_INSERT_ARTICLE_TABLE);
 		dumpFiles.setArticleFile(dumpFile);
 		
 		
 		// Dumping volume table
 		dumpFile = dumpFiles.getVolumeFile();
-		dumpFile = dumpFiles.createDump(volumeValues, dumpFile, FILE_PREFIX_VOLUME, SQLQueries.QUERY_INSERT_VOLUME_TABLE);
+		dumpFile = createDump(volumeValues, dumpFile, FILE_PREFIX_VOLUME, SQLQueries.QUERY_INSERT_VOLUME_TABLE);
 		dumpFiles.setVolumeFile(dumpFile);
 		
 		
 		// Dumping conference table
 		dumpFile = dumpFiles.getConferenceFile();
-		dumpFile = dumpFiles.createDump(conferenceValues, dumpFile, FILE_PREFIX_CONFERENCE, SQLQueries.QUERY_INSERT_CONFERENCE_TABLE);
+		dumpFile = createDump(conferenceValues, dumpFile, FILE_PREFIX_CONFERENCE, SQLQueries.QUERY_INSERT_CONFERENCE_TABLE);
 		dumpFiles.setConferenceFile(dumpFile);
 		
 		
 		// Dumping category table
 		dumpFile = dumpFiles.getCategoryFile();
-		dumpFile = dumpFiles.createDump(categoryValues, dumpFile, FILE_PREFIX_CATEGORY, SQLQueries.QUERY_INSERT_CATEGORY_TABLE);
+		dumpFile = createDump(categoryValues, dumpFile, FILE_PREFIX_CATEGORY, SQLQueries.QUERY_INSERT_CATEGORY_TABLE);
 		dumpFiles.setCategoryReferenceFile(dumpFile);
 		
 		
 		// Dumping category reference table
 		dumpFile = dumpFiles.getCategoryReferenceFile();
-		dumpFile = dumpFiles.createDump(categoryReferenceValues, dumpFile, FILE_PREFIX_CATEGORY_REFERENCE, SQLQueries.QUERY_INSERT_CATEGORY_REFERENCE_TABLE);
+		dumpFile = createDump(categoryReferenceValues, dumpFile, FILE_PREFIX_CATEGORY_REFERENCE, SQLQueries.QUERY_INSERT_CATEGORY_REFERENCE_TABLE);
 		dumpFiles.setCategoryReferenceFile(dumpFile);
 		
 		// Dumping Keyword table	
 		dumpFile = dumpFiles.getKeywordFile();
-		dumpFile = dumpFiles.createDump(keywordValues, dumpFile, FILE_PREFIX_KEYWORD, SQLQueries.QUERY_INSERT_KEYWORD_TABLE);
+		dumpFile = createDump(keywordValues, dumpFile, FILE_PREFIX_KEYWORD, SQLQueries.QUERY_INSERT_KEYWORD_TABLE);
 		dumpFiles.setKeywordReferenceFile(dumpFile);
 	
 
 		// Dumping Keyword reference table
 		dumpFile = dumpFiles.getKeywordReferenceFile();
-		dumpFile = dumpFiles.createDump(keywordReference, dumpFile, FILE_PREFIX_KEYWORD_REFERENCE, SQLQueries.QUERY_INSERT_KEYWORD_REFERENCE_TABLE);
+		dumpFile = createDump(keywordReference, dumpFile, FILE_PREFIX_KEYWORD_REFERENCE, SQLQueries.QUERY_INSERT_KEYWORD_REFERENCE_TABLE);
 		dumpFiles.setKeywordReferenceFile(dumpFile);
 		
 		
 		// Dumping pubmed reference table
 		dumpFile = dumpFiles.getPumbedReferenceFile();
-		dumpFile = dumpFiles.createDump(pubmeReferenceValues, dumpFile, FILE_PREFIX_PUBMED_REFERENCE, SQLQueries.QUERY_INSERT_PUBMED_REFERENCE_TABLE);
+		dumpFile = createDump(pubmeReferenceValues, dumpFile, FILE_PREFIX_PUBMED_REFERENCE, SQLQueries.QUERY_INSERT_PUBMED_REFERENCE_TABLE);
 		dumpFiles.setPumbedReferenceFile(dumpFile);
 		
-		
 	}
+	
+	/**
+	 * Dumps any remaining values in the lists . This method is called after processing all the
+	 * 
+	 * articles.
+	 * @throws Exception 
+	 * 
+	 */
+	
+	 public void dumpRemaining() throws Exception{
+		 createDump();
+		 dumpFiles.closeAllDumpFiles();
+	 }
 	
 	/**
 	 * Creates dump file for the given values in given dump file
@@ -273,8 +285,10 @@ public class PubmedDump {
 	 * @throws Exception
 	 */
 	public String createDump(List<String> values , String dumpFile , String filePrefix, String initialQuery) throws Exception{
+		if(values != null && values.size() > 0){
 		dumpFile = dumpFiles.createDump(values, dumpFile, filePrefix, initialQuery);
 		values = new ArrayList<>();
+		}
 		return dumpFile;
 	}
 	
