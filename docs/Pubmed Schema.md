@@ -72,9 +72,9 @@ Below table will help in understanding how the required fields are extracted fro
 <td> Combination of article-meta and journal-meta elements </td>
 </tr>
 <tr>
-<td>Conference</td>
-<td>/article/front/article-meta/conference/childNodes</td>
-<td>Each childNodes contains details like name,number ,loc etc</td>
+<td>Citations</td>
+<td>/article/back/ref-list/ref</td>
+<td>Multiple ref elements </td>
 </tr>
 
 </table>
