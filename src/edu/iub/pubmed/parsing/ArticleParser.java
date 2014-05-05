@@ -1,14 +1,17 @@
 package edu.iub.pubmed.parsing;
 
 import java.io.IOException;
+import java.sql.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -17,6 +20,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import edu.iub.pubmed.dump.IDGenerator;
 import edu.iub.pubmed.dump.PubmedDump;
+import edu.iub.pubmed.exceptions.NoPubmedIdException;
+
 
 
 public class ArticleParser {
@@ -29,6 +34,8 @@ public class ArticleParser {
 	private String pubmedId = null;
 	private String confId = null;
 	private String volId = null;
+	Set<String> uniqueKeyWords = null;
+	Map<String,Double> refValues = null;
 	private PubmedDump dumpCreator = null;
 	private IDGenerator idGenerator = null;
 
@@ -76,13 +83,14 @@ public class ArticleParser {
 
 	/**
 	 * Parse the XML file and extracts all the required values 
+	 * @throws Exception 
 	 */
-	public void parse() {
+	public void parse() throws Exception {
 		Element articleMeta = (Element) document.getElementsByTagName(
 				"article-meta").item(0);
 		
 		extractConference(articleMeta);
-		extractVolume(articleMeta);
+		extractVolume(document);
 		extractArticlemeta(articleMeta);		
 		extractAuthor(articleMeta);
 		extractCategories(articleMeta);
@@ -92,55 +100,179 @@ public class ArticleParser {
 		document = null;
 	}
 
+
 	
-	private void extractPubmedRef(Document document2) {
-		// TODO Auto-generated method stub
+	
+	
+	/**
+	 * Calculates how many times each citation is cited in the paper
+	 * 
+	 * @param document - document object
+	 * 
+	 * @return - map of citations and their frequencies
+	 *
+	 */
+	public Map<String, Integer> findRefFrequency(Document document) {
+		Map<String, Integer> refCount = null;
+		NodeList xRefNodes = document.getElementsByTagName("xref");
+		int noOfXRefNodes = xRefNodes.getLength();
+		String refId = null;
+		int refFreq = 0;
+		refCount = new HashMap<String, Integer>(noOfXRefNodes);
+		for (int index = 0; index < noOfXRefNodes; index++) {
+			Element element = (Element) xRefNodes.item(index);
+			refId = (String) element.getAttribute("rid");
+			if (refCount.containsKey(refId)) {
+				refFreq = refCount.get(refId);
+				refFreq++;
+			} else {
+				refFreq = 1;
+			}
+			refCount.put(refId, refFreq);
+		}
+		return refCount;
+	}
+	
+	
+	/**
+	 * 
+	 * Extracts citations from the article. Citations are with ref tag . There are multiple
+	 * type of citations and for this project only mixed-citations , element-citations
+	 * and citations are extracted . Out of these citations only citation with pubmed id are inserted 
+	 * into db and rest are discarded .
+	 * <br>
+	 * A citation is considered as pubmed citation if it has <pub-id> tag with pub-id-type attribute
+	 * as pmid
+	 * <br>
+	 * For each citation along with pubmed id, frequency is also inserted into database. 
+	 * 
+	 * 
+	 * @param document
+	 */
+	
+	private void extractPubmedRef(Document document) {
+		List<String> validCitations = new ArrayList<String>();
+		validCitations.add("mixed-citation");
+		validCitations.add("element-citation");
+		validCitations.add("citation");
+		Map<String, Integer> refFreq = null;
+		Set<String> citeIDs = new HashSet<>();
+		String pubMedCitation = null;
+		String refId = null;
+		Element refNode = null;
+		refValues = new HashMap<>();
+		double totalWeight = 1d / document.getElementsByTagName("xref")
+				.getLength();
+
+		try {
+			refFreq = findRefFrequency(document);
+			NodeList refNodes = document.getElementsByTagName("ref");
+			for (int index = 0; index < refNodes.getLength(); index++) {
+				refNode = (Element) refNodes.item(index);
+				refId = refNode.getAttribute("id");
+				NodeList pubMedNode = refNode.getElementsByTagName("pub-id");
+				if (pubMedNode != null && pubMedNode.getLength() >= 1) {
+					for (int pubIdIndex = 0; pubIdIndex < pubMedNode
+							.getLength(); pubIdIndex++) {
+						Element pubMedElement = (Element) pubMedNode
+								.item(pubIdIndex);
+						if (pubMedElement.getAttribute("pub-id-type").equals(
+								"pmid")) {
+							pubMedCitation = pubMedElement.getTextContent();
+							if (citeIDs.add(pubMedCitation)
+									&& pubMedCitation.length() < 10) {
+								if (refFreq.get(refId) != null) {
+									double weight = totalWeight
+											* refFreq.get(refId);
+									refValues.put(pubMedCitation,weight);
+								}
+							}
+							break;
+						}
+					}
+
+				}
+			}
+		} catch (Exception ex) {
+			LOGGER.severe("Exception while Parsing Citations for file "
+					+ fileName);
+			ex.printStackTrace();
+			throw ex;
+		}
 		
 	}
 
-	private void extractVolume(Element articleMeta) {
+	/**
+	 * Extracts volume details from the XML . Volume details are available under both journal-meta
+	 * and article-meta elements. From journal-meta ,journalId , journalTitle and publisherName are extracted
+	 * and from article-meta element volume and issue are extracted . There are other elements like volume-series
+	 *, issue-title , issue-id which contains details about the volume , but these elements are discarded as the frequency
+	 * of their occurrence is very low . <br>
+	 * 
+	 * All the above mentioned elements combinedly define a unique volume.
+	 *  
+	 * @param document - root Element .
+	 * 
+	 * 
+	 */
+	private void extractVolume(Document document) {	
+		String journalId = null;
+		String journalTitle = null;
+		String publisherName = null;
+		String volume = null;	
+		String issue = null;	
+		Element articleMeta = null;
+		Element journalMeta = null;
+		
 		try {
-			Node volume = (Node) xPath.evaluate(
-					"/article/front/article-meta/volume",
-					document.getDocumentElement(), XPathConstants.NODE);
-			Node issue = (Node) xPath.evaluate(
-					"/article/front/article-meta/issue",
-					document.getDocumentElement(), XPathConstants.NODE);
-			Node issueTitle = (Node) xPath.evaluate(
-					"/article/front/article-meta/issue-title",
-					document.getDocumentElement(), XPathConstants.NODE);
-
-			String journalTitle = (String) xPath
-					.evaluate(
-							"/article/front/journal-meta/journal-title-group/journal-title/text()",
-							document.getDocumentElement(),
-							XPathConstants.STRING);
-			if (journalTitle == null) {
-				journalTitle = (String) xPath.evaluate(
-						"/article/front/journal-meta/jounrnal-title/text()",
-						document.getDocumentElement(), XPathConstants.STRING);
+			articleMeta = (Element) document.getElementsByTagName("article-meta");
+			journalMeta = (Element) document.getElementsByTagName("journal-meta");
+			Element journalIdElement = (Element) journalMeta.getElementsByTagName("journal-id").item(0);
+			Element journalTitleElement  = (Element) journalMeta.getElementsByTagName("journal-title");
+			Element publisherNameElement = (Element) journalMeta.getElementsByTagName("publisher-name");
+			Element volumeElement = (Element) articleMeta.getElementsByTagName("volume");
+			Element issueElement = (Element) articleMeta.getElementsByTagName("issue");			
+			
+			
+			journalId = journalIdElement.getTextContent();
+			
+			if(journalTitleElement != null){
+				journalTitle = journalTitleElement.getTextContent();
 			}
-			String volumeId = (String) xPath.evaluate(
-					"/article/front/journal-meta/issn/text()",
-					document.getDocumentElement(), XPathConstants.STRING);
-
-			dumpCreator.addToVolume(volumeId, volume.getTextContent(), issue.getTextContent(), null, issueTitle.getTextContent(), null, null, volumeId); 
+			
+			if(publisherNameElement != null){
+				publisherName = publisherNameElement.getTextContent();
+			}
+			
+			if(volumeElement != null){
+				volume = volumeElement.getTextContent();
+			}
+			
+			if(issueElement != null){
+				issue = issueElement.getTextContent();
+			}
+			
+			
+			//dumpCreator.addToVolume(volumeId, volume.getTextContent(), issue.getTextContent(), null, issueTitle.getTextContent(), null, null, volumeId); 
 			
 		} catch (Exception ex) {
-			LOGGER.severe("Exception while parsing Volume Information "
-					+ fileName);
+			LOGGER.warning("Exception while parsing Volume Information "	+ fileName);
 			ex.printStackTrace();
-			//throw ex;
 		}
 		
 	}
 
 	/**
 	 * Extracts the Conference node from article-meta and traverses to its child Nodes
-	 * to get conference details
-	 * @param articleMeta
-	 * @return
-	 * @throws Exception 
+	 * to get conference details . Conference element is present at following locations 
+	 * <article><article-meta><conference> . This conference element have all the required 
+	 * child nodes to populate conference table . <br>
+	 * 
+	 * Conference name and number is identified as a unique conference . 
+	 * 
+	 * @param articleMeta - <article-meta> element
+	 * 
+	 *
 	 */
 	private void extractConference(Element articleMeta) {
 		NodeList conferenceNode = null;
@@ -164,7 +296,6 @@ public class ArticleParser {
 					String nodeName = childNode.getNodeName();
 					String textContent = childNode.getTextContent();
 					if (nodeName.equals("conf-date")) {
-						// TO Do  traverse further to find the Day,Month , Year
 						confDate = textContent;
 					} else if (nodeName.equals("conf-name")) {
 						confName = textContent;
@@ -185,19 +316,34 @@ public class ArticleParser {
 			  
 			}
 		}catch(Exception ex){
-			ex.printStackTrace();
+			LOGGER.warning("Exception while parsing conference element for article :: " + fileName);
 		}
 		
 	}
 
+	/**
+	 * Returns the pubmeId of this article 
+	 * @return - pubmedId
+	 */
 	public String getPubmedId(){
 		return this.getPubmedId();
 	}
 	
+	
+	/**
+	 * Returns list of keywords used in this article
+	 * @return - list of keywords
+	 */
 	public Set<String> getKeywords(){
-		return null;
+		return uniqueKeyWords;
 	}
 	
+	/**
+	 * Returns citations and their edge weights
+	 * 
+	 * @return - hashmap of citations and their edge weights
+	 * 
+	 */
 	public Map<String,Double> getCitations(){
 		return null;
 	}
@@ -206,20 +352,34 @@ public class ArticleParser {
 	/**
 	 * Extract required details from Article meta
 	 * @param articleMeta
+	 * @throws Exception 
 	 */
-	private void extractArticlemeta(Element articleMeta) {
+	private void extractArticlemeta(Element articleMeta) throws Exception {
 		String pubmedId = null;
 		String articleTitle = null;
 		String abstractText = null;
-
+		Date  pubDate = null;
 		pubmedId = getPubmedId(articleMeta);
 		articleTitle = getArticleTitle(articleMeta);
 		abstractText = getAbstractText(articleMeta);
+		pubDate = getPubDate(articleMeta);
 		
 	   dumpCreator.addToArticle(pubmedId, null, articleTitle, null, abstractText, confId, null, volId);
 	}
 	
 	
+	
+	
+	
+	
+	private Date getPubDate(Element articleMeta) {
+		Element pubDateElement = null;
+		
+		
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	/**
 	 * Retrieves text form the Article Meta
 	 * @param articleMeta
@@ -248,25 +408,31 @@ public class ArticleParser {
 	 * Retrieves PubmId from Article Meta
 	 * @param articleMeta
 	 * @return
+	 * @throws Exception - if pubMed doesnt exist
 	 */
-	private  String getPubmedId(Element articleMeta){
+	private  String getPubmedId(Element articleMeta) throws Exception{
 		String pubmedId = null;
 		NodeList articleIdNodes = null;
 		Element articleIdElement = null;
 		String articleIdType = null;
 		try {
-		articleIdNodes = articleMeta.getElementsByTagName("article-id");
-		for(int index = 0 ; index < articleIdNodes.getLength() ; index++){
-			articleIdElement = (Element) articleIdNodes.item(index);
-			articleIdType = articleIdElement.getAttribute("pub-id-type");
-			if(articleIdType != null && articleIdType.equals("pmid")){
-				pubmedId = articleIdElement.getTextContent();
-				break;
+			articleIdNodes = articleMeta.getElementsByTagName("article-id");
+			for (int index = 0; index < articleIdNodes.getLength(); index++) {
+				articleIdElement = (Element) articleIdNodes.item(index);
+				articleIdType = articleIdElement.getAttribute("pub-id-type");
+				if (articleIdType != null && articleIdType.equals("pmid")) {
+					pubmedId = articleIdElement.getTextContent();
+					break;
+				}
 			}
-			
-		}
+		
+			if(pubmedId == null){
+				throw new NoPubmedIdException();
+			}
+		
 		} catch(Exception ex){
-			
+			LOGGER.severe("Exception while parsing for Pubmed ID " + fileName);
+			throw ex;
 		}
 		return pubmedId;
 	}
@@ -328,7 +494,6 @@ public class ArticleParser {
 	private void extractKeyWords(Element articleMeta) {
 		NodeList kwdNodes = null;
 		String keyWord = null;
-		Set<String> uniqueKeyWords = null;
 		String keywordId = null;
 		try {
 			kwdNodes = articleMeta.getElementsByTagName("kwd");

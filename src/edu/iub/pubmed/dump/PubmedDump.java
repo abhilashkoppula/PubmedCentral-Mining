@@ -3,7 +3,6 @@ package edu.iub.pubmed.dump;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.iub.pubmed.file.DumpFiles;
 import edu.iub.pubmed.utils.SQLQueries;
 import static edu.iub.pubmed.utils.Constants.*;
 

@@ -22,22 +22,24 @@ public interface Constants {
 	public static final String PROPERTY_WEIGHT = "weight";
 	public static final String PROPERTY_PRIOR = "prior";
 	
-	//
+	// Delimiter for DUMP files
 	public static final String DELIMITER = ",";
+	
+	// For the correct syntax of sql file
+	public static final String QUERY_CLOSING_CHARACTER = ";";
 	
 	// Double Object for value 0
 	public static final Double DOUBLE_ZERO = new Double(0);
 	
 	
-	// FIle prefixes for the Dump files
+	// File prefixes for the Dump files
 	public static final String FILE_PREFIX_KEYWORD = "keywords\\keyword_";
 	public static final String FILE_PREFIX_KEYWORD_REFERENCE = "keywords\\keyword_reference_";
 	public static final String FILE_PREFIX_AUTHOR = "authors\\author_";
 	public static final String FILE_PREFIX_AUTHOR_REFERENCE = "authors\\author_reference_";
 	public static final String FILE_PREFIX_CATEGORY = "category\\category_";
 	public static final String FILE_PREFIX_CATEGORY_REFERENCE = "category\\category_reference_";
-	public static final String FILE_PREFIX_ARTICLE = "article\\article";
-	//public static final String FILE_PREFIX_CITATION_REFERENCE  = ""
+	public static final String FILE_PREFIX_ARTICLE = "article\\article_";
 	public static final String FILE_PREFIX_PUBMED_REFERENCE = "citations\\pubmed_reference_";
 	public static final String FILE_PREFIX_VOLUME = "volume\\volume_";
 	public static final String FILE_PREFIX_CONFERENCE = "conference\\conference_";
@@ -45,6 +47,8 @@ public interface Constants {
 	// Values Limit
 	public static final int VALUES_LIMIT = 20000;
 	// Maximum file size of each dump file
-	public static final int MAX_FILE_SIZE = 5000; // 5MB
+	public static final int MAX_DUMP_FILE_SIZE = 5000; // 5MB
+	// Date format
+	public static final String DUMP_FILE_DATE_FORMAT = "YYYY-M-dd-HH-mm-SSS";
 
 }

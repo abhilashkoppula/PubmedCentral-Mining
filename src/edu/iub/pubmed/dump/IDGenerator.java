@@ -15,7 +15,13 @@ public class IDGenerator {
 	public static Map<String, Long> category_ids = new HashMap<>();
 	public static Map<String, Long> author_ids = new HashMap<>();
 	public static Map<String, Long> conf_ids = new HashMap<>();
+	public static Map<String, Long> vol_ids = new HashMap<>();
 
+	
+	
+	
+	
+	
 	public  long getId(String key, Map<String, Long> map, long authorId) {
 		Long currentId = null;
 		currentId = map.get(key);
