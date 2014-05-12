@@ -5,7 +5,7 @@ The page rank algorithm is based on PageRankWithPriors from [JUNG Framework][JUN
 
 ##Process Flow 
 
-![alt tag](https://raw.githubusercontent.com/abhilashkoppula/PubmedCentral-Mining/master/docs/PR.JPG)
+![alt tag](https://raw.githubusercontent.com/abhilashkoppula/PubmedCentral-Mining/master/docs/PR.jpg)
 
 + PageRank algorithm is exectued on the Relevance Graph for each keyword
 + After execution , top 100 pagerank scores are selected and these nodes are updated in Hetrogeneous graph to add the CONTRIBUTED edge from the current keyword to these nodes.
