@@ -19,7 +19,9 @@ Running
 
 #### Parsing Data Set
      edu.iub.pubmed.PubmedCental.java
-     java PubmedCentral <DataSet Path> <Directory for Dump Files>
+     java PubmedCentral <DataSet Path> 
+
+Output is written to directory 'pubmed'  created in same directory as of Jar
 
 #### Running Page Rank
      edu.iub.pubmed.pagerank.PageRank.java
