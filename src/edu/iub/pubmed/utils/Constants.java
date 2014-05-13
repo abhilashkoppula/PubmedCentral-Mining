@@ -1,18 +1,18 @@
 package edu.iub.pubmed.utils;
 
+import edu.iub.pubmed.PubmedCentral;
+
 /**
  * Constants used in this project
  * @author Abhilash
  *
  */
-public interface Constants {
+public class Constants {
 	
 	// Logger Name
 	public static final String LOGGER_NAME = "PubmedCentral_Mining";
 	
-	// Neo4j local dir paths
-	public static final String NEO4J_RELEVANCE_GRAPH_PATH = "relevancegraph";
-	public static final String NEO4J_HETROGENEOUS_GRAPH_PATH = "hetrogeneousgraph";
+	
 	
 	// Names of the property of nodes
 	public static final String PROPERTY_PUBMED_ID = "pubmedId";
@@ -32,17 +32,28 @@ public interface Constants {
 	public static final Double DOUBLE_ZERO = new Double(0);
 	
 	
+		//Pubmed Directory
+		public static  String PUBMED_DIR = PubmedCentral.class.getProtectionDomain().getCodeSource().getLocation().getPath()+"/pubmed";
+		// Neo4j local dir paths
+		public static  String GRAPH_DIR = PUBMED_DIR+"/graph";
+		public static  String DUMP_DIR = PUBMED_DIR+"/dumpfiles";
+		public static  String LOGS_DIR = PUBMED_DIR+"/logs";
+		
+		public static  String NEO4J_RELEVANCE_GRAPH_PATH = GRAPH_DIR+"/relevancegraph";
+		public static  String NEO4J_HETROGENEOUS_GRAPH_PATH = GRAPH_DIR+"/hetrogeneousgraph";
+	
+	
 	// File prefixes for the Dump files
-	public static final String FILE_PREFIX_KEYWORD = "keywords\\keyword_";
-	public static final String FILE_PREFIX_KEYWORD_REFERENCE = "keywords\\keyword_reference_";
-	public static final String FILE_PREFIX_AUTHOR = "authors\\author_";
-	public static final String FILE_PREFIX_AUTHOR_REFERENCE = "authors\\author_reference_";
-	public static final String FILE_PREFIX_CATEGORY = "category\\category_";
-	public static final String FILE_PREFIX_CATEGORY_REFERENCE = "category\\category_reference_";
-	public static final String FILE_PREFIX_ARTICLE = "article\\article_";
-	public static final String FILE_PREFIX_PUBMED_REFERENCE = "citations\\pubmed_reference_";
-	public static final String FILE_PREFIX_VOLUME = "volume\\volume_";
-	public static final String FILE_PREFIX_CONFERENCE = "conference\\conference_";
+	public static  String FILE_PREFIX_KEYWORD = DUMP_DIR+"/keywords/keyword_";
+	public static  String FILE_PREFIX_KEYWORD_REFERENCE = DUMP_DIR+"/keywords/keyword_reference_";
+	public static  String FILE_PREFIX_AUTHOR = DUMP_DIR+"/author/author_";
+	public static  String FILE_PREFIX_AUTHOR_REFERENCE = DUMP_DIR+"/author/author_reference_";
+	public static  String FILE_PREFIX_CATEGORY = DUMP_DIR+"/category/category_";
+	public static  String FILE_PREFIX_CATEGORY_REFERENCE = DUMP_DIR+"/category/category_reference_";
+	public static  String FILE_PREFIX_ARTICLE = DUMP_DIR+"/article/article_";
+	public static  String FILE_PREFIX_PUBMED_REFERENCE = DUMP_DIR+"/citations/pubmed_reference_";
+	public static  String FILE_PREFIX_VOLUME = DUMP_DIR+"/volume/volume_";
+	public static  String FILE_PREFIX_CONFERENCE = DUMP_DIR+"/conference/conference_";
 	
 	// Values Limit
 	public static final int VALUES_LIMIT = 20000;
@@ -50,5 +61,12 @@ public interface Constants {
 	public static final int MAX_DUMP_FILE_SIZE = 5000; // 5MB
 	// Date format
 	public static final String DUMP_FILE_DATE_FORMAT = "YYYY-M-dd-HH-mm-SSS";
+	
+	//Citation context length 
+	public static final int CITATION_CONTEXT_LENGTH = 150;
+	
+	
+		
+		
 
 }

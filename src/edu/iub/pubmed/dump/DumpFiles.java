@@ -46,7 +46,7 @@ public class DumpFiles {
 	
 	public DumpFiles(String dumpDirectory){
 		this.dumpDirectory = dumpDirectory;
-		createDirectories();
+	//	createDirectories();
 //		articleFile = createFileName(FILE_PREFIX_ARTICLE);
 //		keywordFile = createFileName(FILE_PREFIX_KEYWORD);
 //		keywordReferenceFile = createFileName(FILE_PREFIX_KEYWORD_REFERENCE);
@@ -61,8 +61,7 @@ public class DumpFiles {
 	}
 	
 
-	private void createDirectories() {
-		
+	private void createDirectories() {		
 		try {
 		new File(dumpDirectory+"\\authors").mkdirs();
 		new File(dumpDirectory+"\\article").mkdirs();
@@ -215,8 +214,8 @@ public class DumpFiles {
 	 */
 	public String createFileName(String prefix) {
 		StringBuilder fileNameBuilder = new StringBuilder();
-		fileNameBuilder.append(dumpDirectory);
-		fileNameBuilder.append("\\");
+		//fileNameBuilder.append(dumpDirectory);
+		//fileNameBuilder.append("\\");
 		fileNameBuilder.append(prefix);
 		fileNameBuilder.append(getCurrentTime());
 		fileNameBuilder.append(".sql");

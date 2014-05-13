@@ -40,7 +40,7 @@ public class PubmedServer {
 	 * Creates graphdb for Hetrogeneous graph
 	 */
 	public void startHetrogeneousGraphSever() {
-		graphDb = new RelevanceGraph().getGraph();
+		graphDb = new HetrogeneousGraph().getGraph();
 		startServer();
 	}
 

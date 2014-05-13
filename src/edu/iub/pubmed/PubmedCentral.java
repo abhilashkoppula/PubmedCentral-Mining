@@ -11,6 +11,7 @@ import edu.iub.pubmed.file.DatasetOperations;
 import edu.iub.pubmed.graph.GraphDelegator;
 import edu.iub.pubmed.parsing.ArticleParser;
 import edu.iub.pubmed.utils.Constants;
+import edu.iub.pubmed.utils.UtilityMethods;
 
 /**
  * Handles total process flow
@@ -32,7 +33,7 @@ public class PubmedCentral {
 	 * processing the duplicate articles(articles with same pubmedId) .
 	 */
 	public static Set<String> pubmedIds = new HashSet<>();
-
+ 
 	public PubmedCentral(String dumpfilesPath) {
 		pubmedDump = new PubmedDump(dumpfilesPath);
 		idGenerator = new IDGenerator(pubmedDump);
@@ -53,11 +54,10 @@ public class PubmedCentral {
 			articleParser = new ArticleParser(fileName,idGenerator,pubmedDump);
 			articleParser.parse();
 			LOGGER.log(Level.FINEST,"Parsing of {0} successfull ", fileName);
-			if (true) {
-				graphDelegator.updateGraph(articleParser.getPubmedId(),
+			graphDelegator.updateGraph(articleParser.getPubmedId(),
 						articleParser.getKeywords(),
 						articleParser.getCitations());
-			}
+			
 			articleParser = null;
 		} catch (Exception ex) {
 			LOGGER.warning("Exception while parsing ::" + ex.getMessage());
@@ -102,18 +102,18 @@ public class PubmedCentral {
 	}
 
 	public static void main(String args[]) throws Exception {
-		if (args.length < 3) {
+		if (args.length < 2) {
 			System.out
 					.println("************************************************************");
 			System.out
-					.println("Invalid number of arguments : Usage : java PubmedCentral <DataSet path> <DumpFiles path> <Log Directory>");
+					.println("Invalid number of arguments : Usage : java PubmedCentral <DataSet path> <Run path> ");
 			System.out
 					.println("************************************************************");
 		}
 		String datasetPath = args[0];
-		String dumpfilesPath = args[1];
-		String logDirectory = args[2];
-		PubmedCentral pubmedCentral = new PubmedCentral(dumpfilesPath);
+		String runPath = args[1];
+		UtilityMethods.createDirectories();
+		PubmedCentral pubmedCentral = new PubmedCentral(runPath);
 		pubmedCentral.load(datasetPath);
 	}
 

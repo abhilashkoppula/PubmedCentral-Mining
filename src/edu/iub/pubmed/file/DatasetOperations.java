@@ -63,7 +63,7 @@ public class DatasetOperations {
 					pubmedCentral.checkForDumping(prevDirectory,
 							currentDirectory);
 					currentDirectory = currentFile.getAbsolutePath();
-					LOGGER.fine("Processing  directory :: "
+					LOGGER.info("Processing  directory :: "
 							+ currentFile.getName());
 					traverseAndLoad(currentFile.getAbsolutePath()); // Recursive call to process this directory
 					prevDirectory = currentDirectory;

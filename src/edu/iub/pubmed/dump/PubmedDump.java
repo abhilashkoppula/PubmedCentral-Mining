@@ -109,7 +109,7 @@ public class PubmedDump {
 	 */
 	public void addToKeyWordReferenceValues(String pubmedId , String keywordId){
 		String values = String.format(SQLQueries.QUERY_VALUES_KEYWORD_REFERENCE_TABLE,pubmedId,keywordId);
-		addToList(values,keywordValues);
+		addToList(values,keywordReference);
 	}
 	
 	/**

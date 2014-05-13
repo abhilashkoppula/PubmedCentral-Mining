@@ -16,6 +16,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
+import org.dom4j.io.DOMReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -25,6 +26,7 @@ import org.xml.sax.SAXException;
 import edu.iub.pubmed.dump.IDGenerator;
 import edu.iub.pubmed.dump.PubmedDump;
 import edu.iub.pubmed.exceptions.NoPubmedIdException;
+import edu.iub.pubmed.utils.Constants;
 import edu.iub.pubmed.utils.UtilityMethods;
 
 /**
@@ -38,6 +40,8 @@ public class ArticleParser {
 
 	private static final Logger LOGGER = Logger.getLogger("PubmedMining");
 	private static DocumentBuilder documentBuilder = null;
+	private static DOMReader domReader = null;
+	private org.dom4j.Document dom4jDoc = null;
 	private static XPath xPath = null;
 	private String fileName = null;
 	private Document document = null;
@@ -71,6 +75,7 @@ public class ArticleParser {
 							"http://apache.org/xml/features/nonvalidating/load-external-dtd",
 							false);
 			documentBuilder = dbFactory.newDocumentBuilder();
+			domReader = new DOMReader();
 			xPath = XPathFactory.newInstance().newXPath();
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -87,6 +92,7 @@ public class ArticleParser {
 	public ArticleParser(String fileName, IDGenerator idGenerator , PubmedDump pubmedDump) throws SAXException, IOException {
 		this.fileName = fileName;
 		this.document = documentBuilder.parse(fileName);
+		this.dom4jDoc = domReader.read(document);
 		this.document.getDocumentElement().normalize();
 		this.idGenerator = idGenerator;
 		this.dumpCreator = pubmedDump;
@@ -114,6 +120,7 @@ public class ArticleParser {
 		} catch (Exception ex) {
 			LOGGER.log(Level.SEVERE,"Exception while parsing {0} and discarding this file",new Object[]{fileName});
 			ex.printStackTrace();
+			throw ex;
 		}
 	}
 	/**
@@ -143,6 +150,56 @@ public class ArticleParser {
 			refCount.put(refId, refFreq);
 		}
 		return refCount;
+	}
+	
+	
+	
+	
+	/**
+	 * For the given refId , the left and right text from where the citation is cited in the
+	 * paragraphs of the body , are extracted and inserted into database.	 
+	 * 
+	 * @param citedPubmedId - citation Pubmed Id
+	 * @param refId - refId of the citation
+	 * 
+	 */
+	private void addCitationContext(String citedPubmedId , String refId) {
+		List<org.dom4j.Node> citedParas = null;
+		String citedXML = null;
+		int citationIndex = -1;
+		String leftText = null;
+		String rightText = null;
+		int beginIndex = 0;
+		int endIndex = 0;
+		String citationString = "<xref ref-type=\"bibr\" rid=\"?\">";
+		String xPath = "/article/body//p[.//xref[@rid = '?']]";
+		citationString = citationString.replace("?", refId);
+		xPath = xPath.replace("?", refId);
+		citedParas = dom4jDoc.selectNodes(xPath);
+
+		for (org.dom4j.Node citedPara : citedParas) {
+			citedXML = citedPara.asXML();
+			citationIndex = -1;
+			citationIndex = citedXML.indexOf(citationString);
+			if (citationIndex != -1) {
+				if (citationIndex <= Constants.CITATION_CONTEXT_LENGTH) {
+					beginIndex = 0;
+				} else {
+					beginIndex = citationIndex - Constants.CITATION_CONTEXT_LENGTH;
+				}
+				leftText = citedXML.substring(beginIndex, citationIndex);
+				if (citedXML.length() > (citationIndex
+						+ citationString.length() + Constants.CITATION_CONTEXT_LENGTH)) {
+					endIndex = citationIndex + citationString.length() + Constants.CITATION_CONTEXT_LENGTH;
+
+				} else {
+					endIndex = citedXML.length();
+				}
+				rightText = citedXML.substring(
+						citationIndex + citationString.length(), endIndex);
+				dumpCreator.addToPubmedReference(pubmedId, citedPubmedId, UtilityMethods.formatString(leftText), UtilityMethods.formatString(rightText));
+			}
+		}
 	}
 	
 	
@@ -193,6 +250,7 @@ public class ArticleParser {
 							if (citeIDs.add(pubMedCitation)
 									&& pubMedCitation.length() < 10) {
 								if (refFreq.get(refId) != null) {
+									addCitationContext(pubMedCitation,refId);
 									double weight = totalWeight
 											* refFreq.get(refId);
 									refValues.put(pubMedCitation, weight);
