@@ -6,13 +6,14 @@ import org.neo4j.server.WrappingNeoServer;
 import org.neo4j.server.WrappingNeoServerBootstrapper;
 
 /**
- * Wraps the emebeded graph db to make them available via URL
+ * Wraps the embeded graph db to make them available via URL
  * http://localhost:7474/webadmin/#
  * <em> <br>
  * 			<b> Usage : </b> javac PubmedServer.java <br>
  *       	  java PumbedServer <GraphIdentifier> <br>
- *   		0-for Relevance Graph and 1 for Hetrogeneous Graph <br>
+ *   		0-for Relevance Graph and 1 for Heterogeneous Graph <br>
  *  </em> 
+ *  
  * @author Abhilash
  *
  */

@@ -1,0 +1,1 @@
+INSERT INTO category VALUES(1000,'null','Original Paper'),(1005,'null','Short Communication'),(1021,'null','Article'),(1028,'null','Technical Advancement'),(1033,'null','Regular Article'),(1064,'null','Review'),(1152,'null','Note');

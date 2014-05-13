@@ -1,7 +1,6 @@
 package edu.iub.pubmed.utils;
 
 import java.io.File;
-
 import edu.iub.pubmed.PubmedCentral;
 
 /**
@@ -10,7 +9,6 @@ import edu.iub.pubmed.PubmedCentral;
  *
  */
 public class Constants {
-	
 	// Logger Name
 	public static final String LOGGER_NAME = "PubmedCentral_Mining";
 	// Names of the property of nodes
@@ -67,10 +65,6 @@ public class Constants {
 	public static final int CITATION_CONTEXT_LENGTH = 150;
 	
 	// Page Rank Threshold
-	public static final double PAGE_RANK_THRESHOLD = 10.00;
-	
-	
-		
-		
+	public static final double PAGE_RANK_THRESHOLD = 10.00;	
 
 }

@@ -82,7 +82,7 @@ public class PageRank {
 	 * <ul>
 	 * <li> Normalize the priors such that sum of all priors is 1.
 	 * <li> Run the Jung PageRankWithPriors.evaluate method to calculate the page rank
-	 * <li> Update the Hetrogeneous graph for the current keyword and nodes with authorithy greater than 0.0
+	 * <li> Update the Heterogeneous graph for the current keyword and nodes with authorithy greater than 0.0
 	 * </ul>
 	 * 
 	 */
@@ -114,7 +114,7 @@ public class PageRank {
 	 */
 	private void updateHetrogeneousGraph() {
 		Map<String,Double> contributions = new HashMap<>();
-		double vertexScore = 0;
+		double vertexScore = 0;		
 		for(Node node : relevanceGraph.getGraph().getAllNodes()){
 			vertexScore = pageRankWithPriors.getVertexScore(graph
 					.getVertex(node.getId()));
@@ -122,6 +122,7 @@ public class PageRank {
 				contributions.put((String) node.getProperty(Constants.PROPERTY_PUBMED_ID), vertexScore);
 			}
 		}
+		LOGGER.log(Level.INFO,"Updating Hetrogeneous Graph  for Keyword :: " +  keyWord);
 			hetrogeneousGraph.updateGraphWithAuthority(keyWord, contributions);
 	}
 	
@@ -134,7 +135,6 @@ public class PageRank {
 		priorWeight = 0.0;
 		try(Transaction transaction = relevanceGraph.getGraph().beginTx()) {
 		for (Node node : relevanceGraph.getGraph().getAllNodes()) {
-			System.out.println(node.getPropertyKeys());
 			if(node.hasProperty(Constants.PROPERTY_KEYWORDS)){
 			String[] keywords = (String[]) node.getProperty(Constants.PROPERTY_KEYWORDS);
 			for (String keyword : keywords) {
@@ -203,7 +203,14 @@ public class PageRank {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		
+		if (args.length < 1) {
+			System.out
+					.println("************************************************************");
+			System.out
+					.println("Invalid number of arguments : Usage : java PageRank <KeyWord Path> ");
+			System.out
+					.println("************************************************************");
+		}
 		String keywordsInputFile = args[0];
 		PageRank pr = new PageRank(keywordsInputFile);
 		pr.runPageRank();

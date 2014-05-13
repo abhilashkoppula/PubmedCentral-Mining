@@ -176,7 +176,6 @@ public class ArticleParser {
 		citationString = citationString.replace("?", refId);
 		xPath = xPath.replace("?", refId);
 		citedParas = dom4jDoc.selectNodes(xPath);
-
 		for (org.dom4j.Node citedPara : citedParas) {
 			citedXML = citedPara.asXML();
 			citationIndex = -1;
@@ -325,6 +324,7 @@ public class ArticleParser {
 		} catch (Exception ex) {
 			LOGGER.warning("Exception while parsing Volume Information "	+ fileName);
 			ex.printStackTrace();
+			throw ex;
 		}
 		
 	}
