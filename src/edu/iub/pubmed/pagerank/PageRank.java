@@ -26,7 +26,7 @@ import edu.uci.ics.jung.algorithms.scoring.PageRankWithPriors;
 
 /**
  * Calculates the pagerank for all the nodes in the relevant graph for the
- * keywords given in the input file and updates the Hetrogeneous graph to create
+ * keywords given in the input file and updates the Heterogeneous graph to create
  * contributed edges/relationships between paper nodes and keyword nodes
  * 
  * <br>
@@ -103,7 +103,11 @@ public class PageRank {
 	}
 
 	/**
-	 * Updates the hetrogeneous graph to add the edges/relationships 'contributed'
+	 * 
+	 * <b> TO DO : <b>  Change this method to update the Heterogeneous depending upon
+	 * parameters like minimum page rank or Top 100 page ranks etc 
+	 * 
+	 * Updates the heterogeneous graph to add the edges/relationships 'contributed'
 	 * 
 	 * between keyword and paper nodes
 	 * 
@@ -114,7 +118,7 @@ public class PageRank {
 		for(Node node : relevanceGraph.getGraph().getAllNodes()){
 			vertexScore = pageRankWithPriors.getVertexScore(graph
 					.getVertex(node.getId()));
-			if(vertexScore > 0){
+			if(vertexScore > Constants.PAGE_RANK_THRESHOLD){
 				contributions.put((String) node.getProperty(Constants.PROPERTY_PUBMED_ID), vertexScore);
 			}
 		}
@@ -131,6 +135,7 @@ public class PageRank {
 		try(Transaction transaction = relevanceGraph.getGraph().beginTx()) {
 		for (Node node : relevanceGraph.getGraph().getAllNodes()) {
 			System.out.println(node.getPropertyKeys());
+			if(node.hasProperty(Constants.PROPERTY_KEYWORDS)){
 			String[] keywords = (String[]) node.getProperty(Constants.PROPERTY_KEYWORDS);
 			for (String keyword : keywords) {
 				if (keyword.equals(currentKeyWord)) {
@@ -138,6 +143,7 @@ public class PageRank {
 					break;
 				}
 			}
+		}
 		}
 		transaction.success();
 		}
@@ -163,7 +169,11 @@ public class PageRank {
 	Transformer<Vertex, Double> priors = new Transformer<Vertex, Double>() {
 		@Override
 		public Double transform(Vertex vertex) {
+			if(vertex.getPropertyKeys().contains(Constants.PROPERTY_PRIOR)){
 			return ((Double) vertex.getProperty(Constants.PROPERTY_PRIOR) / priorWeight);
+			} else {
+				return Constants.DOUBLE_ZERO;
+			}
 		}
 	};
 	

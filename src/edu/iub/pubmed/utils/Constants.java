@@ -1,5 +1,7 @@
 package edu.iub.pubmed.utils;
 
+import java.io.File;
+
 import edu.iub.pubmed.PubmedCentral;
 
 /**
@@ -11,9 +13,6 @@ public class Constants {
 	
 	// Logger Name
 	public static final String LOGGER_NAME = "PubmedCentral_Mining";
-	
-	
-	
 	// Names of the property of nodes
 	public static final String PROPERTY_PUBMED_ID = "pubmedId";
 	public static final String PROPERTY_KEYWORD = "keywordText";
@@ -31,16 +30,18 @@ public class Constants {
 	// Double Object for value 0
 	public static final Double DOUBLE_ZERO = new Double(0);
 	
+	public static String JAR_PATH = PubmedCentral.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 	
-		//Pubmed Directory
-		public static  String PUBMED_DIR = PubmedCentral.class.getProtectionDomain().getCodeSource().getLocation().getPath()+"/pubmed";
-		// Neo4j local dir paths
-		public static  String GRAPH_DIR = PUBMED_DIR+"/graph";
-		public static  String DUMP_DIR = PUBMED_DIR+"/dumpfiles";
-		public static  String LOGS_DIR = PUBMED_DIR+"/logs";
-		
-		public static  String NEO4J_RELEVANCE_GRAPH_PATH = GRAPH_DIR+"/relevancegraph";
-		public static  String NEO4J_HETROGENEOUS_GRAPH_PATH = GRAPH_DIR+"/hetrogeneousgraph";
+	
+	//public static  String PUBMED_DIR = PubmedCentral.class.getProtectionDomain().getCodeSource().getLocation()+"/../pubmed";
+	public static  String PUBMED_DIR = new File(JAR_PATH).getParentFile().getAbsolutePath()+"/pubmed";
+	// Neo4j local dir paths
+	public static  String GRAPH_DIR = PUBMED_DIR+"/graph";
+	public static  String DUMP_DIR = PUBMED_DIR+"/dumpfiles";
+	public static  String LOGS_DIR = PUBMED_DIR+"/logs";
+	
+	public static  String NEO4J_RELEVANCE_GRAPH_PATH = GRAPH_DIR+"/relevancegraph";
+	public static  String NEO4J_HETROGENEOUS_GRAPH_PATH = GRAPH_DIR+"/hetrogeneousgraph";
 	
 	
 	// File prefixes for the Dump files
@@ -64,6 +65,9 @@ public class Constants {
 	
 	//Citation context length 
 	public static final int CITATION_CONTEXT_LENGTH = 150;
+	
+	// Page Rank Threshold
+	public static final double PAGE_RANK_THRESHOLD = 10.00;
 	
 	
 		

@@ -567,7 +567,7 @@ public class ArticleParser {
 				if (keyWord != null && keyWord.length() < 200
 						&& uniqueKeyWords.add(keyWord)) {
 					keywordId = idGenerator.generateKeywordId(keyWord);
-					dumpCreator.addToKeyWordValues(pubmedId, keywordId);
+					dumpCreator.addToKeyWordReferenceValues(pubmedId, keywordId);
 				}
 			}
 		} catch (Exception ex) {

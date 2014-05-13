@@ -6,7 +6,9 @@ public class UtilityMethods {
 	
 	
 /**
- * Formats the given string by removing '\n'	
+ * Formats the given string so that SQL query formed with this string would not
+ * result SQL query parsing issues
+ * 
  * @param givenString
  * @return
  */
@@ -16,7 +18,7 @@ public static String formatString(String givenString){
 	if (givenString != null) {
 		formattedString = givenString.toLowerCase().trim();
 		formattedString = formattedString.replaceAll("[\\n,\\.,*]", "");
-		formattedString = formattedString.replaceAll("'", "\\'");
+		formattedString = formattedString.replaceAll("'", "");
 	}
 		return formattedString;
 	}

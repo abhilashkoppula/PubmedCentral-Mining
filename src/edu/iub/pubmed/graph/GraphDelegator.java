@@ -40,5 +40,14 @@ public class GraphDelegator {
 		hetroGraph.updateGraph(pubmedId, citations	, keywords);
 	}
 	
+	/**
+	 * <b> TO DO : <b> If graphs needs to be trimmed/pruned for better performance
+	 * 
+	 */
+	
+	public void removeNonPubmedCentralNodes(){
+		
+	}
+	
 
 }

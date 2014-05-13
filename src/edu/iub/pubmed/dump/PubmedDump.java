@@ -95,7 +95,7 @@ public class PubmedDump {
 	 * @param keyword - keyword text
 	 * @param keywordId - generated id of keyword
 	 */
-	public void addToKeyWordValues(String keyword , String keywordId){
+	public void addToKeyWordValues(String keywordId , String keyword ){
 		String values = String.format(SQLQueries.QUERY_VALUES_KEYWORD_TABLE,keywordId,keyword);
 		addToList(values,keywordValues);
 		
@@ -234,7 +234,7 @@ public class PubmedDump {
 		// Dumping category table
 		dumpFile = dumpFiles.getCategoryFile();
 		dumpFile = createDump(categoryValues, dumpFile, FILE_PREFIX_CATEGORY, SQLQueries.QUERY_INSERT_CATEGORY_TABLE);
-		dumpFiles.setCategoryReferenceFile(dumpFile);
+		dumpFiles.setCategoryFile(dumpFile);
 		
 		
 		// Dumping category reference table
@@ -245,7 +245,7 @@ public class PubmedDump {
 		// Dumping Keyword table	
 		dumpFile = dumpFiles.getKeywordFile();
 		dumpFile = createDump(keywordValues, dumpFile, FILE_PREFIX_KEYWORD, SQLQueries.QUERY_INSERT_KEYWORD_TABLE);
-		dumpFiles.setKeywordReferenceFile(dumpFile);
+		dumpFiles.setKeywordFile(dumpFile);
 	
 
 		// Dumping Keyword reference table

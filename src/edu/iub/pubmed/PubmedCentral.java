@@ -79,8 +79,8 @@ public class PubmedCentral {
 		datasetOperations.traverseAndLoad(datasetPath);
 		pubmedDump.dumpRemaining(); // To dump the last values
 		LOGGER.log(Level.INFO, "Completed parsing and loading of the dataset");
-		LOGGER.log(Level.INFO, "Removing pubmed nodes from graph which doesnt have article data");
-		//graphDelegator.removeNonPubmedCentralNodes();
+		LOGGER.log(Level.INFO, "Pruning the graphs for better performance");
+		graphDelegator.removeNonPubmedCentralNodes();
 		LOGGER.log(Level.INFO, "Completed Dataset loading and Graph creation");
 	}
 
@@ -110,6 +110,7 @@ public class PubmedCentral {
 			System.out
 					.println("************************************************************");
 		}
+		//System.out.println(Constants.DUMP_DIR);
 		String datasetPath = args[0];
 		String runPath = args[1];
 		UtilityMethods.createDirectories();

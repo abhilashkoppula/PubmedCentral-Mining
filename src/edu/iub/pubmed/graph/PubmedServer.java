@@ -46,7 +46,7 @@ public class PubmedServer {
 
 	public static void main(String[] args) {
 		PubmedServer pubmedGraphServer = new PubmedServer();
-		if (args[0] == "0") {
+		if (args[0].equals("0")) {
 			pubmedGraphServer.startRelevanceGraphSever();
 		} else {
 			pubmedGraphServer.startHetrogeneousGraphSever();
