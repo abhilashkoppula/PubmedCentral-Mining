@@ -34,8 +34,8 @@ public class PubmedCentral {
 	 */
 	public static Set<String> pubmedIds = new HashSet<>();
  
-	public PubmedCentral(String dumpfilesPath) {
-		pubmedDump = new PubmedDump(dumpfilesPath);
+	public PubmedCentral() {
+		pubmedDump = new PubmedDump();
 		idGenerator = new IDGenerator(pubmedDump);
 		graphDelegator = new GraphDelegator();
 	}
@@ -102,20 +102,20 @@ public class PubmedCentral {
 	}
 
 	public static void main(String args[]) throws Exception {
-		if (args.length < 2) {
+		if (args.length < 1) {
 			System.out
 					.println("************************************************************");
 			System.out
-					.println("Invalid number of arguments : Usage : java PubmedCentral <DataSet path> <Run path> ");
+					.println("Invalid number of arguments : Usage : java PubmedCentral <DataSet path> ");
 			System.out
 					.println("************************************************************");
+		} else {
+
+			String datasetPath = args[0];
+			UtilityMethods.createDirectories();
+			PubmedCentral pubmedCentral = new PubmedCentral();
+			pubmedCentral.load(datasetPath);
 		}
-		//System.out.println(Constants.DUMP_DIR);
-		String datasetPath = args[0];
-		String runPath = args[1];
-		UtilityMethods.createDirectories();
-		PubmedCentral pubmedCentral = new PubmedCentral(runPath);
-		pubmedCentral.load(datasetPath);
 	}
 
 }

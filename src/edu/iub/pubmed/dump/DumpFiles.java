@@ -1,15 +1,5 @@
 package edu.iub.pubmed.dump;
 
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_ARTICLE;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_AUTHOR;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_AUTHOR_REFERENCE;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_CATEGORY;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_CATEGORY_REFERENCE;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_CONFERENCE;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_KEYWORD;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_KEYWORD_REFERENCE;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_PUBMED_REFERENCE;
-import static edu.iub.pubmed.utils.Constants.FILE_PREFIX_VOLUME;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -42,40 +32,6 @@ public class DumpFiles {
 	String conferenceFile = null;
 	String pumbedReferenceFile = null;
 	
-	
-	
-	public DumpFiles(String dumpDirectory){
-		this.dumpDirectory = dumpDirectory;
-	//	createDirectories();
-//		articleFile = createFileName(FILE_PREFIX_ARTICLE);
-//		keywordFile = createFileName(FILE_PREFIX_KEYWORD);
-//		keywordReferenceFile = createFileName(FILE_PREFIX_KEYWORD_REFERENCE);
-//		authorFile = createFileName(FILE_PREFIX_AUTHOR);
-//		authorReferenceFile = createFileName(FILE_PREFIX_AUTHOR_REFERENCE);
-//		categoryFile = createFileName(FILE_PREFIX_CATEGORY);
-//		categoryReferenceFile = createFileName(FILE_PREFIX_CATEGORY_REFERENCE);
-//		volumeFile = createFileName(FILE_PREFIX_VOLUME);
-//		conferenceFile = createFileName(FILE_PREFIX_CONFERENCE);
-//		pumbedReferenceFile = createFileName(FILE_PREFIX_PUBMED_REFERENCE);
-		
-	}
-	
-
-	private void createDirectories() {		
-		try {
-		new File(dumpDirectory+"\\authors").mkdirs();
-		new File(dumpDirectory+"\\article").mkdirs();
-		new File(dumpDirectory+"\\volume").mkdirs();
-		new File(dumpDirectory+"\\conference").mkdirs();
-		new File(dumpDirectory+"\\keywords").mkdirs();
-		new File(dumpDirectory+"\\category").mkdirs();
-		new File(dumpDirectory+"\\citations").mkdirs();
-		}catch(Exception ex){
-			
-		}
-		
-	}
-
 
 	/**
 	 * Creates a dump file for the given values either by appending to existing file or creating new file . <br>

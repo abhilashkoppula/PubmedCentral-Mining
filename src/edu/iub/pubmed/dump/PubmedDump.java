@@ -28,8 +28,8 @@ public class PubmedDump {
 	DumpFiles dumpFiles = null;
 	
 	
-	public PubmedDump(String dumpDirectory){
-		dumpFiles = new DumpFiles(dumpDirectory);
+	public PubmedDump(){
+		dumpFiles = new DumpFiles();
 		articleValues = new ArrayList<>();
 		authorValues = new ArrayList<>();
 		volumeValues = new ArrayList<>();
