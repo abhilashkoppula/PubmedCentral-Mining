@@ -93,7 +93,8 @@ public class RelevanceGraph {
 		Node node = null;
 		Node citedNode = null;
 		Relationship cited = null;
-		try (Transaction tx = graphDb.beginTx()) {
+		try {
+			Transaction tx = graphDb.beginTx();
 			LOGGER.log(Level.FINER,"Updating graph for pubmedId {0} with keywords {1} and citations {2} " , new Object[]{pubmedId , keyWords,citedPubmedIds});
 			node = createPaperNode(pubmedId);
 			node.setProperty(Constants.PROPERTY_KEYWORDS,
