@@ -32,7 +32,7 @@ public class PubmedCentral {
 	 * Set of pubmedIds that are processed already . This is to avoid 
 	 * processing the duplicate articles(articles with same pubmedId) .
 	 */
-	public static Set<String> pubmedIds = new HashSet<>();
+	public static Set<String> pubmedIds = new HashSet<String>();
  
 	public PubmedCentral() {
 		pubmedDump = new PubmedDump();
