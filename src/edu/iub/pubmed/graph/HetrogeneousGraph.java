@@ -132,7 +132,8 @@ public class HetrogeneousGraph {
 		Relationship relevant = null;
 		Relationship cited = null;
 		double keyWordsWeight = 0;
-		try (Transaction tx = graphDb.beginTx()) {
+		try {
+			Transaction tx = graphDb.beginTx();
 			LOGGER.log(Level.FINER,"Updating graph for pubmedId {0} with keywords {1} and citations {2} " , new Object[]{pubmedId , keyWords,citedPubmedIds});
 			node = createPaperNode(pubmedId);
 			if (keyWords.size() >= 1) {
@@ -172,7 +173,8 @@ public class HetrogeneousGraph {
 		Node paperNode = null;
 		Relationship contributed = null;
 		double weight = 0;
-		try (Transaction tx = graphDb.beginTx()) {
+		try {
+			Transaction tx = graphDb.beginTx();
 			LOGGER.log(Level.FINER,"Updating graph for keyword {0} contributions {2} " , new Object[]{keyword , contributedPubmedIds});
 			keywordNode = createKeyWordNode(keyword);
 			if (keywordNode == null) {
