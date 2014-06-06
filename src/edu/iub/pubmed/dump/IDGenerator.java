@@ -28,11 +28,11 @@ public class IDGenerator {
 	
 	public IDGenerator(PubmedDump pubmedDump) {
 		this.pubmedDump = pubmedDump;
-		 keyword_ids = new HashMap<>();
-		 category_ids = new HashMap<>();
-		 author_ids = new HashMap<>();
-		 conf_ids = new HashMap<>();
-		 vol_ids = new HashMap<>();
+		 keyword_ids = new HashMap<String, Long>();
+		 category_ids = new HashMap<String, Long>();
+		 author_ids = new HashMap<String, Long>();
+		 conf_ids = new HashMap<String, Long>();
+		 vol_ids = new HashMap<String, Long>();
 	}
 	
 	
