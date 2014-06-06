@@ -30,16 +30,16 @@ public class PubmedDump {
 	
 	public PubmedDump(){
 		dumpFiles = new DumpFiles();
-		articleValues = new ArrayList<>();
-		authorValues = new ArrayList<>();
-		volumeValues = new ArrayList<>();
-		authorReferencesValues = new ArrayList<>();
-		keywordValues = new ArrayList<>();
-		keywordReference = new ArrayList<>();
-		conferenceValues = new ArrayList<>();
-		categoryValues = new ArrayList<>();
-		categoryReferenceValues = new ArrayList<>();
-		pubmeReferenceValues = new ArrayList<>();
+		articleValues = new ArrayList<String>();
+		authorValues = new ArrayList<String>();
+		volumeValues = new ArrayList<String>();
+		authorReferencesValues = new ArrayList<String>();
+		keywordValues = new ArrayList<String>();
+		keywordReference = new ArrayList<String>();
+		conferenceValues = new ArrayList<String>();
+		categoryValues = new ArrayList<String>();
+		categoryReferenceValues = new ArrayList<String>();
+		pubmeReferenceValues = new ArrayList<String>();
 	}
 	
 	
@@ -287,7 +287,7 @@ public class PubmedDump {
 	public String createDump(List<String> values , String dumpFile , String filePrefix, String initialQuery) throws Exception{
 		if(values != null && values.size() > 0){
 		dumpFile = dumpFiles.createDump(values, dumpFile, filePrefix, initialQuery);
-		values = new ArrayList<>();
+		values = new ArrayList<String>();
 		}
 		return dumpFile;
 	}
