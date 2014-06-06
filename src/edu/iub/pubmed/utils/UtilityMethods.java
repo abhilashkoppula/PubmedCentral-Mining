@@ -36,13 +36,13 @@ public static void createDirectories() {
 	new File(Constants.DUMP_DIR).mkdirs();
 	new File(Constants.DUMP_DIR).mkdirs();
 	new File(Constants.DUMP_DIR).mkdirs();
-	new File(Constants.DUMP_DIR+"\\article").mkdirs();
-	new File(Constants.DUMP_DIR+"\\author").mkdirs();
-	new File(Constants.DUMP_DIR+"\\volume").mkdirs();
-	new File(Constants.DUMP_DIR+"\\conference").mkdirs();
-	new File(Constants.DUMP_DIR+"\\keywords").mkdirs();
-	new File(Constants.DUMP_DIR+"\\category").mkdirs();
-	new File(Constants.DUMP_DIR+"\\citations").mkdirs();
+	new File(Constants.DUMP_DIR + File.separator + "article").mkdirs();
+	new File(Constants.DUMP_DIR + File.separator + "author").mkdirs();
+	new File(Constants.DUMP_DIR + File.separator + "volume").mkdirs();
+	new File(Constants.DUMP_DIR + File.separator + "conference").mkdirs();
+	new File(Constants.DUMP_DIR + File.separator + "keywords").mkdirs();
+	new File(Constants.DUMP_DIR + File.separator + "category").mkdirs();
+	new File(Constants.DUMP_DIR + File.separator + "citations").mkdirs();
 	}catch(Exception ex){
 		
 	}
