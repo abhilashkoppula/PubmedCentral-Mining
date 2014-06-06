@@ -72,13 +72,14 @@ public class DumpFiles {
 	 */
 	private void closeDumpFile(String dumpFile) throws IOException {
 		if(dumpFile != null){
-		try (PrintWriter out = new PrintWriter(new BufferedWriter(
-				new FileWriter(dumpFile, true)))) {
-			out.print(Constants.QUERY_CLOSING_CHARACTER);
-		}catch (IOException e) {
-			e.printStackTrace();
-			throw e;
-		}
+			try {
+				PrintWriter out = new PrintWriter(new BufferedWriter(
+					new FileWriter(dumpFile, true))); 
+				out.print(Constants.QUERY_CLOSING_CHARACTER);
+			}catch (IOException e) {
+				e.printStackTrace();
+				throw e;
+			}
 		}
 		
 	}
@@ -140,8 +141,9 @@ public class DumpFiles {
 	public void writeToFile(String initialQuery, List<String> values,
 			String fileName) throws Exception {
 		int startIndex = 0;
-		try (PrintWriter out = new PrintWriter(new BufferedWriter(
-				new FileWriter(fileName, true)))) {
+		try {
+			PrintWriter out = new PrintWriter(new BufferedWriter(
+					new FileWriter(fileName, true)));
 			if (initialQuery != null) {
 				out.print(initialQuery);
 				out.print(values.get(startIndex++));
