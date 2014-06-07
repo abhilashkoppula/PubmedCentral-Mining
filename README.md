@@ -12,7 +12,7 @@ Import into eclipse and add following dependencies/external jars
 + Neo4j Server  - [Neo4j/system][Neo4j-2]
 + PageRank      - [Jung Framework][Jung]
 + Neo4j_PageRank Interface - [BluePrints][Blueprints]
-
++Dom4j          - [dom4j Framework][Dom4j]
 
 Running
 -------------------
@@ -38,3 +38,4 @@ Output is written to directory 'pubmed'  created in same directory as of Jar
 [Jung]:http://jung.sourceforge.net/download.html
 [Blueprints]:https://github.com/tinkerpop/blueprints/wiki
 [docs]:https://github.com/abhilashkoppula/PubmedCentral-Mining/tree/master/docs
+[Dom4j]:http://sourceforge.net/projects/dom4j
