@@ -218,17 +218,17 @@ public class ArticleParser {
 	 * @param document
 	 */
 	
-	private void extractPubmedRef(Document document) {
+	private void extractPubmedRef(Document document) throws Exception {
 		List<String> validCitations = new ArrayList<String>();
 		validCitations.add("mixed-citation");
 		validCitations.add("element-citation");
 		validCitations.add("citation");
 		Map<String, Integer> refFreq = null;
-		Set<String> citeIDs = new HashSet<>();
+		Set<String> citeIDs = new HashSet<String>();
 		String pubMedCitation = null;
 		String refId = null;
 		Element refNode = null;
-		refValues = new HashMap<>();
+		refValues = new HashMap<String, Double>();
 		double totalWeight = 1d / document.getElementsByTagName("xref")
 				.getLength();
 		try {
@@ -282,7 +282,7 @@ public class ArticleParser {
 	 * 
 	 * 
 	 */
-	private void extractVolume(Document document) {	
+	private void extractVolume(Document document) throws Exception {	
 		String journalId = null;
 		String journalTitle = null;
 		String publisherName = null;
@@ -339,7 +339,7 @@ public class ArticleParser {
 	 * 
 	 * @param articleMeta - <article-meta> element
 	 */
-	private void extractConference(Element articleMeta) {
+	private void extractConference(Element articleMeta) throws Exception {
 		NodeList conferenceNode = null;
 		Element conferenceElement = null;
 		String confDate = null;
@@ -505,7 +505,7 @@ public class ArticleParser {
 	 * @param document
 	 * @throws Exception 
 	 */
-	private void extractCategories(Element articleMeta) {
+	private void extractCategories(Element articleMeta) throws Exception {
 		NodeList categoryNodes = null;
 		Element categoryElem = null;
 		String categoryId = null;
@@ -553,13 +553,13 @@ public class ArticleParser {
 	 * </ul>
 	 * 
 	 */
-	private void extractKeyWords(Element articleMeta) {
+	private void extractKeyWords(Element articleMeta) throws Exception {
 		NodeList kwdNodes = null;
 		String keyWord = null;
 		String keywordId = null;
 		try {
 			kwdNodes = articleMeta.getElementsByTagName("kwd");
-			 uniqueKeyWords = new HashSet<>();
+			 uniqueKeyWords = new HashSet<String>();
 			for (int index = 0; index < kwdNodes.getLength(); index++) {
 				Element kwdNode = (Element) kwdNodes.item(index);
 				keyWord = kwdNode.getTextContent();
@@ -584,7 +584,7 @@ public class ArticleParser {
 	 * For each author(GivenName + SurName) , author Id is retrieved and added
 	 * to author reference dump
 	 */
-	private void extractAuthor(Element articleMeta) {
+	private void extractAuthor(Element articleMeta) throws Exception {
 		NodeList contributors = (NodeList) articleMeta
 				.getElementsByTagName("contrib");
 		Element contributor = null;
