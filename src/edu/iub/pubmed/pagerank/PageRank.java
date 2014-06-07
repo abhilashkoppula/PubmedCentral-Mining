@@ -61,10 +61,11 @@ public class PageRank {
 	 * @param keywordFile - page rank keyword file
 	 */
 	private void loadKeyWords(String keywordFile) {
-		totalKeyWords = new ArrayList<>();
+		totalKeyWords = new ArrayList<String>();
 		String value = null;
-		try (FileReader fileReader = new FileReader(keywordFile);
-				BufferedReader bufferedReader = new BufferedReader(fileReader);) {
+		try {
+			FileReader fileReader = new FileReader(keywordFile);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			while ((value = bufferedReader.readLine()) != null) {
 				totalKeyWords.add(value);
 			}
@@ -113,7 +114,7 @@ public class PageRank {
 	 * 
 	 */
 	private void updateHetrogeneousGraph() {
-		Map<String,Double> contributions = new HashMap<>();
+		Map<String,Double> contributions = new HashMap<String,Double>();
 		double vertexScore = 0;		
 		for(Node node : relevanceGraph.getGraph().getAllNodes()){
 			vertexScore = pageRankWithPriors.getVertexScore(graph
@@ -133,20 +134,19 @@ public class PageRank {
 	 */
 	private void findPriorWeight(String currentKeyWord) {
 		priorWeight = 0.0;
-		try(Transaction transaction = relevanceGraph.getGraph().beginTx()) {
+		Transaction transaction = relevanceGraph.getGraph().beginTx();
 		for (Node node : relevanceGraph.getGraph().getAllNodes()) {
 			if(node.hasProperty(Constants.PROPERTY_KEYWORDS)){
-			String[] keywords = (String[]) node.getProperty(Constants.PROPERTY_KEYWORDS);
-			for (String keyword : keywords) {
-				if (keyword.equals(currentKeyWord)) {
-					priorWeight += (Double) node.getProperty(Constants.PROPERTY_PRIOR);
-					break;
+				String[] keywords = (String[]) node.getProperty(Constants.PROPERTY_KEYWORDS);
+				for (String keyword : keywords) {
+					if (keyword.equals(currentKeyWord)) {
+						priorWeight += (Double) node.getProperty(Constants.PROPERTY_PRIOR);
+						break;
+					}
 				}
 			}
 		}
-		}
 		transaction.success();
-		}
 	}
 
 	
