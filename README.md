@@ -12,7 +12,7 @@ Import into eclipse and add following dependencies/external jars
 + Neo4j Server  - [Neo4j/system][Neo4j-2]
 + PageRank      - [Jung Framework][Jung]
 + Neo4j_PageRank Interface - [BluePrints][Blueprints]
-+Dom4j          - [dom4j Framework][Dom4j]
++ Dom4j         - [dom4j Framework][Dom4j]
 
 Running
 -------------------
