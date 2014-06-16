@@ -76,6 +76,7 @@ public class DumpFiles {
 				PrintWriter out = new PrintWriter(new BufferedWriter(
 					new FileWriter(dumpFile, true))); 
 				out.print(Constants.QUERY_CLOSING_CHARACTER);
+				out.flush();
 			}catch (IOException e) {
 				e.printStackTrace();
 				throw e;
@@ -152,7 +153,7 @@ public class DumpFiles {
 				out.println(",");
 				out.print(values.get(startIndex));
 			}
-
+			out.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw e;
