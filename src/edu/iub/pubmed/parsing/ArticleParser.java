@@ -424,8 +424,8 @@ public class ArticleParser {
 		articleTitle = getArticleTitle(articleMeta);
 		abstractText = getAbstractText(articleMeta);
 		pubDate = getPubDate(articleMeta);
-		// TO DO pub Date
-		   dumpCreator.addToArticleValues(pubmedId, "", articleTitle, UtilityMethods.formatString(abstractText), confId,  volId);
+		//TODO: pub Date
+		   dumpCreator.addToArticleValues(pubmedId, null, UtilityMethods.formatString(articleTitle), UtilityMethods.formatString(abstractText), confId,  volId);
 		}catch(Exception ex){
 			LOGGER.warning("Exception while parsing article-meta element for article details :: " + ex.getMessage());
 			throw ex;
@@ -450,9 +450,16 @@ public class ArticleParser {
 	 */
 	
 	private String getAbstractText(Element articleMeta) {
-		Element abstractElem = (Element) articleMeta.getElementsByTagName("abstract").item(0);
-		String abstractText = abstractElem.getTextContent();
-		return UtilityMethods.formatString(abstractText);
+		String abstractStr = null;
+		NodeList abstractElements = null;
+		abstractElements = articleMeta.getElementsByTagName("abstract");
+		if (abstractElements.getLength() > 0) {
+			Element abstractElem = (Element) abstractElements.item(0);
+			String abstractText = abstractElem.getTextContent();
+			abstractStr =  UtilityMethods.formatString(abstractText);
+		}
+		abstractElements = null;
+		return (abstractStr);
 	}
 
 	/**
