@@ -149,7 +149,7 @@ public class DumpFiles {
 				out.print(values.get(startIndex++));
 			}
 			for (; startIndex < values.size(); startIndex++) {
-				out.print(",");
+				out.println(",");
 				out.print(values.get(startIndex));
 			}
 
