@@ -1,6 +1,8 @@
 relevancegraph/
 hetrogeneousgraph/
 bin/
+.classpath
+pubmed/
 <<<<<<< HEAD
 
 =======
