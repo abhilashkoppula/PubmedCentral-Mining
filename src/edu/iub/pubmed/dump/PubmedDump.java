@@ -3,6 +3,7 @@ package edu.iub.pubmed.dump;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.iub.pubmed.utils.Constants;
 import edu.iub.pubmed.utils.SQLQueries;
 import static edu.iub.pubmed.utils.Constants.*;
 
@@ -54,7 +55,13 @@ public class PubmedDump {
 	 * @param volId - volume Id
 	 */
 	public void addToArticleValues(String pubmedId , String pubDate , String articleTitle , String abstractTex , String confId , String volId ){
-		String values = String.format(SQLQueries.QUERY_VALUES_ARTICLE_TABLE,pubmedId,pubDate,articleTitle,abstractTex,confId,volId);
+//		String values = String.format(SQLQueries.QUERY_VALUES_ARTICLE_TABLE,pubmedId,pubDate,articleTitle,abstractTex,confId,volId);
+		String values = "(" + formatStringForDb(pubmedId) + "," + 
+				        formatStringForDb(pubDate) + ", " +
+				        formatStringForDb(articleTitle) + "," + 
+				        formatStringForDb(abstractTex) + "," + 
+				        formatStringForDb(confId) + "," + 
+				        formatStringForDb(volId) + ")";
 		addToList(values,articleValues);
 	}
 	
@@ -195,6 +202,16 @@ public class PubmedDump {
 		}
 		return false;
 	}
+	
+	
+	private String formatStringForDb(String value) {
+		if(value == null)
+			return(value);
+		else
+			return ("'" + value + "'");
+	} //end of formatStringForDb
+	
+	
 	
 	/**
 	 * Creates dump files for all the tables.
