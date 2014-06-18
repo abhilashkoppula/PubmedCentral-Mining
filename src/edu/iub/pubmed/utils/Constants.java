@@ -1,6 +1,9 @@
 package edu.iub.pubmed.utils;
 
 import java.io.File;
+
+import org.w3c.dom.Element;
+
 import edu.iub.pubmed.PubmedCentral;
 
 /**
@@ -71,4 +74,11 @@ public class Constants {
 	public static final String DOUBLE_QUOTE = "\"";
 	public static final String SINGLE_QUOTE = "'";
 
+	//Element Names for Parsing in the Article Parser Class
+	public static final String ELEMENT_CATEGORY_TAG = "article-categories";
+	public static final String ELEMENT_SUBJ_GROUP_TAG = "subj-group";
+	public static final String ELEMENT_SUBJECT_TAG = "subject";
+	public static final Class ELEMENT_CLASS = org.w3c.dom.Element.class;
+	
+	
 }
