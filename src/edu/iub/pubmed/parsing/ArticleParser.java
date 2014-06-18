@@ -507,54 +507,156 @@ public class ArticleParser {
 
 	
 	/**
-	 * Extracts category information Recursively i.e for each category if there are child
-	 * categories they are traversed further.
-	 * @param document
-	 * @throws Exception 
+	 * extractCategories<br/>
+	 * Processes each of the subj-group categories within the 
+	 * article-categories metadata.
+	 * 
+	 * @param articleMeta Element with the article metadata
+	 * 
 	 */
-	private void extractCategories(Element articleMeta) throws Exception {
+	private void extractCategories(Element articleMeta) {
 		NodeList categoryNodes = null;
-		Element categoryElem = null;
-		String categoryId = null;
+		NodeList subjGrpNodes = null;
 		try {
-			categoryNodes = articleMeta.getElementsByTagName("subj-group");
-			for (int index = 0; index < categoryNodes.getLength(); index++) {
-			categoryElem = (Element) categoryNodes.item(index);
-			categoryId = idGenerator.getCategoryId(categoryElem.getFirstChild()
-						.getTextContent() , null);
-			dumpCreator.addToCategoryReferenceValues(pubmedId, categoryId);
-			if (categoryElem.getChildNodes().getLength() > 1) {
-				setSubCategories(categoryElem.getLastChild(), categoryId);
-				}
-			}
-		}catch(Exception ex){
-			LOGGER.warning("Exception while parsing Cateogry element :: " + ex.getMessage());
-			throw ex;
+			// There is at most one article-categories element in the metadata
+			categoryNodes = articleMeta.getElementsByTagName(Constants.ELEMENT_CATEGORY_TAG);
+			if (categoryNodes.getLength() == 0)
+				return; //the optional article-categories node was not included
+			// Get the child subj-group nodes and process them
+			subjGrpNodes = categoryNodes.item(0).getChildNodes();
+			for (int i = 0; i < subjGrpNodes.getLength(); i++) {
+				Node node = subjGrpNodes.item(i);
+				if (node.getNodeType() != Node.ELEMENT_NODE)
+					continue;
+				String tag = ((Element)node).getTagName();
+				if (tag == null || tag.compareTo(Constants.ELEMENT_SUBJ_GROUP_TAG) != 0)
+					continue; //not a subj-group element, so we don't want it
+				processSubjGroup(node, null);
+			} //loop through the child nodes of article-categories
+			return;
+		} catch(Exception ex){
+			LOGGER.severe("Exception while parsing a Category element :: " + ex.getMessage() + 
+					" Category listings for article: " + pubmedId + " may not be complete.");
+			// No further exception is thrown - articles should not be excluded due
+			// to an exception in parsing the descriptive categories. 
+			//TODO: It would be good to keep a log of the total exceptions by type
+			//      of error so we could dump it to the log at the end.
+		} finally {
+			categoryNodes = null;
+			subjGrpNodes = null;
 		}
-		
-	}
+	} //end of extractCategories
+	
 	/**
-	 * Extract subcategories
-	 * @param lastChild - Subcategory nodes
-	 * @param categoryId - parent category Id
+	 * processSubjGroup<br/>
+	 * Based on the NIH website: http://dtd.nlm.nih.gov/archiving/tag-library/3.0/n-qjs2.html <br/>
+	 * Each subj-group consists of one or more subject elements and optionally, one
+	 * or more child subj-group elements.  This method is used to recursively process 
+	 * subj-group elements.  Each category is based on its subject and the parent
+	 * subject group's ID (a string).  For the top level categories, the parent ID is null.
+	 * 
+	 * @param subjGrpNode  Node that contains a subj-group Element
+	 * @param parentId     String with the parent category's ID, or null if this 
+	 *                     is a top-level category.
 	 */
-		private void setSubCategories(Node lastChild, String categoryId) {			
-			String subCategoryId = null;
-			subCategoryId = idGenerator.getCategoryId(lastChild.getFirstChild().getNodeValue(),categoryId);
-			dumpCreator.addToCategoryReferenceValues(pubmedId, subCategoryId);
-			if (lastChild.getChildNodes().getLength() > 1) {
-				setSubCategories(lastChild.getLastChild(), subCategoryId);
+	private void processSubjGroup(Node subjGrpNode, String parentId) {
+		ArrayList<Node> subjects = null;
+		ArrayList<Node> subCategories = null;
+		String mySubjectId = null; //set to the first subject when processing child nodes
+		try {
+			subjects = new ArrayList<Node>();
+			subCategories = new ArrayList<Node>();
+			NodeList children = subjGrpNode.getChildNodes();
+			for (int i = 0; i < children.getLength(); i++) {
+				Node child = children.item(i);
+				if (child.getNodeType() != Node.ELEMENT_NODE)
+					continue; //we only want elements
+				String tag = ((Element) child).getTagName();
+				// Check if we have a subject or subject group
+				if (tag.equals(Constants.ELEMENT_SUBJECT_TAG))
+					subjects.add(child);
+				else if(tag.equals(Constants.ELEMENT_SUBJ_GROUP_TAG))
+					subCategories.add(child);
 			}
+			// Each subject group is REQUIRED to have at least one subject
+			// Process subjects first so we have a category ID for sub-categories
+			while(!subjects.isEmpty() ) {
+				Element subjElement = (Element) subjects.remove(0);
+				String subject = subjElement.getTextContent().trim();
+				if (subject.length() == 0)
+					continue;  //we don't want empty subjects
+				String categoryId = idGenerator.getCategoryId(subject, parentId);
+				dumpCreator.addToCategoryReferenceValues(pubmedId, categoryId);
+				if (mySubjectId == null)
+					mySubjectId = categoryId; //set to the first subject's ID
+			}
+			// Process the subcategories
+			while(!subCategories.isEmpty() ) {
+				processSubjGroup(subCategories.remove(0), mySubjectId);
+			}
+		} catch(Exception ex){
+			LOGGER.severe("Exception while parsing a Category subject group element :: " + ex.getMessage() + 
+					" Category listings for article: " + pubmedId + " may not be complete.");
+			// No further exception is thrown - articles should not be excluded due
+			// to an exception in parsing the descriptive categories. 
+			//TODO: It would be good to keep a log of the total exceptions by type
+			//      of error so we could dump it to the log at the end.
+		} finally {
+			try{subjects.clear();}catch(Exception e){}
+			try{subCategories.clear();}catch(Exception e){}
 		}
+	} //end of processSubjGroup
+	
+	
+//	/**
+//	 * Extracts category information Recursively i.e for each category if there are child
+//	 * categories they are traversed further.
+//	 * @param document
+//	 * @throws Exception 
+//	 */
+//	private void extractCategories(Element articleMeta) throws Exception {
+//		NodeList categoryNodes = null;
+//		Element categoryElem = null;
+//		String categoryId = null;
+//		try {
+//			categoryNodes = articleMeta.getElementsByTagName("subj-group");
+//			for (int index = 0; index < categoryNodes.getLength(); index++) {
+//			categoryElem = (Element) categoryNodes.item(index);
+//			categoryId = idGenerator.getCategoryId(categoryElem.getFirstChild()
+//						.getTextContent() , null);
+//			dumpCreator.addToCategoryReferenceValues(pubmedId, categoryId);
+//			if (categoryElem.getChildNodes().getLength() > 1) {
+//				setSubCategories(categoryElem.getLastChild(), categoryId);
+//				}
+//			}
+//		}catch(Exception ex){
+//			LOGGER.warning("Exception while parsing Cateogry element :: " + ex.getMessage());
+//			throw ex;
+//		}
+//	}
+	
+//	/**
+//	 * Extract subcategories
+//	 * @param lastChild - Subcategory nodes
+//	 * @param categoryId - parent category Id
+//	 */
+//		private void setSubCategories(Node lastChild, String categoryId) {			
+//			String subCategoryId = null;
+//			subCategoryId = idGenerator.getCategoryId(lastChild.getFirstChild().getNodeValue(),categoryId);
+//			dumpCreator.addToCategoryReferenceValues(pubmedId, subCategoryId);
+//			if (lastChild.getChildNodes().getLength() > 1) {
+//				setSubCategories(lastChild.getLastChild(), subCategoryId);
+//			}
+//		}
 
 	/**
 	 * <ul>
-	 * <li>Extracts author information form the XML file .</li>
+	 * <li>Extracts keyword information form the XML file .</li>
 	 * 
-	 * <li>Author information is available at
+	 * <li>Keyword information is available at
 	 * <article><article-meta><kwd-group><kwd></li>
 	 * 
-	 * <li>Extracted keyword is formatted and check for null and length < 200 .</li>
+	 * <li>Extracted keyword is formatted and check for null and length < 200.</li>
 	 * <li>For each keyword, keyword Id is retrieved and added to keyword
 	 * reference dump</li>
 	 * </ul>
