@@ -3,10 +3,13 @@ package edu.iub.pubmed.parsing;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +48,10 @@ public class ArticleParser {
 	private static XPath xPath = null;
 	private String fileName = null;
 	private Document document = null;
-	private String pubmedId = null;
+	private String pubmedId = null;              // ID used for the article.  Preferably a pmid, but others if no pmid is available
+	private byte idType = Constants.IDTYPE_NO_ID;// Type for the ID based on types in Constants
+	private java.sql.Date publicationDate = null;
+	private String pubDateType = null; 
 	private String confId = null;
 	private String volId = null;
 	Set<String> uniqueKeyWords = null;
@@ -111,7 +117,7 @@ public class ArticleParser {
 			extractConference(articleMeta);
 			extractVolume(document);
 			extractArticlemeta(articleMeta);
-			extractAuthor(articleMeta);
+			extractAuthors(articleMeta);
 			extractCategories(articleMeta);
 			extractKeyWords(articleMeta);
 			extractPubmedRef(document);
@@ -420,12 +426,12 @@ public class ArticleParser {
 		String abstractText = null;
 		String  pubDate = null;
 		try {
-		pubmedId = getPubmedId(articleMeta);
+		extractPubmedId(articleMeta);
 		articleTitle = getArticleTitle(articleMeta);
 		abstractText = getAbstractText(articleMeta);
-		pubDate = getPubDate(articleMeta);
+		extractPubDate(articleMeta);
 		//TODO: pub Date
-		   dumpCreator.addToArticleValues(pubmedId, null, UtilityMethods.formatString(articleTitle), UtilityMethods.formatString(abstractText), confId,  volId);
+		   dumpCreator.addToArticleValues(pubmedId, idType, publicationDate.toString(), pubDateType, UtilityMethods.formatString(articleTitle), UtilityMethods.formatString(abstractText), confId,  volId);
 		}catch(Exception ex){
 			LOGGER.warning("Exception while parsing article-meta element for article details :: " + ex.getMessage());
 			throw ex;
@@ -433,15 +439,95 @@ public class ArticleParser {
 	}	
 	
 	/**
-	 * Retrieves pubDate from article-meta	
-	 * @param articleMeta
-	 * @return
+	 * extractPubDate<br/>
+	 * Retrieves the pubDate from article-meta.  The publication date (pub-date) element
+	 * is optional, so if the article metadata contains no pub-date, the publication
+	 * date is set to null.
+	 * 
+	 * Each article can have multiple publication dates (e.g., acceptance, e-publication, 
+	 * collection, etc.)  There is a hierarchy as to preference when setting the publication 
+	 * date.  The type of date used is also stored in the database.
+	 *  
+	 * @param articleMeta  Element with the article metadata
 	 */
-	private String getPubDate(Element articleMeta) {
+	private void extractPubDate(Element articleMeta) {
+		NodeList pubDates = null;
+		NodeList dateChildren = null;
+		Node child = null;
 		Element pubDateElement = null;
-		// TODO Auto-generated method stub
-		return null;
-	}
+		HashMap<String,Date> publicationDates = null;
+		
+		publicationDate = null;//default
+		pubDateType = null;
+		try {
+			publicationDates = new HashMap<String,Date>();
+			pubDates = articleMeta.getElementsByTagName("pub-date");
+			for (int i = 0; i < pubDates.getLength(); i++) {
+				pubDateElement = (Element) pubDates.item(i);
+				// The pub-date can contain a variety of different elements, 
+				// including year, month, and day, but it can also be expressed
+				// as a season or other text values.
+				// if there is not at least a year, we will not process the date.
+				int year = 0; int month = 0; int day = 0;
+				dateChildren = pubDateElement.getChildNodes();
+				for (int j = 0; j < dateChildren.getLength(); j++) {
+					child = dateChildren.item(j);
+					if (child.getNodeType() != Node.ELEMENT_NODE)
+						continue; //we only care about element nodes
+					String tag = ((Element)child).getTagName();
+					if (tag.equals(Constants.PUB_YEAR_TAG))
+						year = Integer.parseInt( child.getTextContent() );
+					else if (tag.equals(Constants.PUB_MONTH_TAG))
+						month = Integer.parseInt( child.getTextContent() );
+					else if (tag.equals(Constants.PUB_DAY_TAG))
+						day = Integer.parseInt( child.getTextContent() );
+				} //get the relevant child elements out of a pub-date
+				if (year == 0)
+					continue;  //we cannot build a publication date without a year
+				// get the date type
+				pubDateElement.getAttribute(Constants.PUB_TYPE_LABEL);
+				Calendar pubCalendar = Calendar.getInstance();
+				pubCalendar.set(year, month, day);
+				publicationDates.put(pubDateElement.getAttribute(Constants.PUB_TYPE_LABEL), new Date(pubCalendar.getTimeInMillis()));
+			} //loop through the possible publication dates
+			if (publicationDates.size() == 0)
+				return; //we found no date that would work - leave the date and type as null
+			// there are some publication dates we have a preference for, but if those do not
+			// exist for this article, we will take the first date with a label
+			if (publicationDates.containsKey(Constants.PUB_TYPE_PPUB)) {
+				publicationDate = publicationDates.get(Constants.PUB_TYPE_PPUB);
+				pubDateType = Constants.PUB_TYPE_PPUB;
+			} else if (publicationDates.containsKey(Constants.PUB_TYPE_EPUB)) {
+				publicationDate = publicationDates.get(Constants.PUB_TYPE_EPUB);
+				pubDateType = Constants.PUB_TYPE_EPUB;
+			} else if (publicationDates.containsKey(Constants.PUB_TYPE_COLLECTION)) {
+				publicationDate = publicationDates.get(Constants.PUB_TYPE_COLLECTION);
+				pubDateType = Constants.PUB_TYPE_COLLECTION;
+			} else if (publicationDates.containsKey(Constants.PUB_TYPE_PMC)) {
+				publicationDate = publicationDates.get(Constants.PUB_TYPE_PMC);
+				pubDateType = Constants.PUB_TYPE_PMC;
+			} else if (publicationDates.containsKey(Constants.PUB_TYPE_ACCEPTED)) {
+				publicationDate = publicationDates.get(Constants.PUB_TYPE_ACCEPTED);
+				pubDateType = Constants.PUB_TYPE_ACCEPTED;
+			} else {
+				Iterator<Entry<String,Date>> it = publicationDates.entrySet().iterator();
+				Entry<String,Date> entry = it.next();
+				publicationDate = entry.getValue();
+				pubDateType = entry.getKey();
+			}			
+			return;
+		} catch (Exception ex) {
+			LOGGER.severe("Exception while parsing out the publication date for " + fileName);
+			publicationDate = null;
+			pubDateType = null;
+		} finally {
+			pubDates = null;
+			dateChildren = null;
+			child = null;
+			pubDateElement = null;
+			try{publicationDates.clear();}catch(Exception e){}
+		}
+	} //end of extractPubDate
 
 	/**
 	 * Retrieves text form the Article Meta
@@ -463,47 +549,90 @@ public class ArticleParser {
 	}
 
 	/**
-	 * Retrieves Article tile from the Article meta
-	 * @param articleMeta
-	 * @return
+	 * Retrieves Article tile from the Article meta.  Since the title
+	 * group is optional in the schema, if there is no title for the article,
+	 * this method will return null.
+	 * 
+	 * @param articleMeta   Element with the article metadata
+	 * @return              String with the article title or null 
+	 *                      if no title is specified in the article metadata.
 	 */
 	private String getArticleTitle(Element articleMeta) {
-		Element titleGroup = (Element) articleMeta.getElementsByTagName("title-group").item(0);
-		Element articleTitle = (Element) titleGroup.getElementsByTagName("article-title").item(0);
-		return articleTitle.getTextContent();
-	}
+		String articleTitle = null; 
+		Element titleGroup = null;
+		NodeList titleGroups = articleMeta.getElementsByTagName("title-group");
+		if (titleGroups.getLength() > 0) {
+			titleGroup = (Element) titleGroups.item(0);
+			// although title group is optional, each 
+			// title group must contain a title.
+			articleTitle = ((Element) titleGroup.getElementsByTagName("article-title").item(0)).getTextContent();
+		}
+		return (articleTitle);
+	} //end of getArticleTitle
 	
 	
 	/**
-	 * Retrieves PubmId from Article Meta
-	 * @param articleMeta
+	 * extractPubmedId<br/>
+	 * Retrieves an ID for the article. If it has a pubmed ID (pmid), 
+	 * that is preferable, otherwise we will identify by one of the 
+	 * other recognized ID types.  Based on the schema, an article is NOT
+	 * required to have any IDs. If the article has no ID, or ones we do 
+	 * not recognize, an Exception is thrown that lists the unregnized 
+	 * IDs available (if any).
+	 * @param articleMeta  Element containing an articleMeta element
 	 * @return
-	 * @throws Exception - if pubMed doesnt exist
+	 * @throws Exception - if pubMed doesn't exist
 	 */
-	private  String getPubmedId(Element articleMeta) throws Exception{
-		String pubmedId = null;
+	private  void extractPubmedId(Element articleMeta) throws Exception{
+		String articleId = null;
 		NodeList articleIdNodes = null;
 		Element articleIdElement = null;
+		HashMap<String,String> articleIds = null;
 		String articleIdType = null;
 		try {
+			articleIds = new HashMap<String,String>();
 			articleIdNodes = articleMeta.getElementsByTagName("article-id");
 			for (int index = 0; index < articleIdNodes.getLength(); index++) {
 				articleIdElement = (Element) articleIdNodes.item(index);
 				articleIdType = articleIdElement.getAttribute("pub-id-type");
-				if (articleIdType != null && articleIdType.equals("pmid")) {
-					pubmedId = articleIdElement.getTextContent();
-					break;
+				if (articleIdType == null)
+					continue;
+				articleId = articleIdElement.getTextContent();
+				articleIds.put(articleIdType, articleId);
+				if (articleIdType.equals("pmid")) 
+					break; //pmid is our top choice for an ID
+			}
+			// We need to decide which ID to use.  Preference is for a pmid
+			pubmedId = null;
+			idType = Constants.IDTYPE_NO_ID;
+			if (articleIds.containsKey(Constants.PUBMED_LABEL)) { //second choice
+				idType = Constants.IDTYPE_PUBMED;
+				pubmedId = articleIds.get(Constants.PUBMED_LABEL);
+			} else if (articleIds.containsKey(Constants.PMC_LABEL)) { //third choice
+				idType = Constants.IDTYPE_PMC;
+				pubmedId = articleIds.get(Constants.PMC_LABEL);
+			} else if (articleIds.containsKey(Constants.DOI_LABEL)) { //fourth choice
+				idType = Constants.IDTYPE_DOI;
+				pubmedId = articleIds.get(Constants.DOI_LABEL);
+			} 
+			if (idType == Constants.IDTYPE_NO_ID) {
+				// we could not find a suitable ID - log what we found
+				StringBuilder msg = new StringBuilder("No suitable ID found in file: " + fileName);
+				for (Entry<String,String> entry: articleIds.entrySet()) {
+					msg.append("\nID type: " + entry.getKey() + ", value: " + entry.getValue());
 				}
-			}		
-			if(pubmedId == null){
-				throw new NoPubmedIdException();
-			}		
+				throw new NoPubmedIdException(msg.toString());
+			}
+			return;	
 		} catch(Exception ex){
 			LOGGER.severe("Exception while parsing for Pubmed ID " + fileName);
 			throw ex;
+		} finally {
+			articleIdNodes = null;
+			articleIdElement = null;
+			try{articleIds.clear();}catch(Exception e){}
 		}
-		return pubmedId;
-	}
+	} //end of extractPubmedId
 
 	
 	/**
@@ -693,32 +822,130 @@ public class ArticleParser {
 	 * For each author(GivenName + SurName) , author Id is retrieved and added
 	 * to author reference dump
 	 */
-	private void extractAuthor(Element articleMeta) throws Exception {
-		NodeList contributors = (NodeList) articleMeta
-				.getElementsByTagName("contrib");
-		Element contributor = null;
-		String surName = null;
-		String givenName = null;
-		String authorId = null;
+	private void extractAuthors(Element articleMeta) throws Exception {
+		NodeList contributors = null;
 		try {
-			for (int index = 0; index < contributors.getLength(); index++) {
-				contributor = (Element) contributors.item(index);
-				if (contributor.getAttribute("contrib-type").equals("author")) {
-					surName = ((Element) contributor.getElementsByTagName(
-							"surname").item(0)).getTextContent();
-					givenName = ((Element) contributor.getElementsByTagName(
-							"given-names").item(0)).getTextContent();
-					if (surName != null && givenName != null) {
-						authorId = idGenerator.getAuthorId(givenName, surName);
-						dumpCreator.addToAuthorReferenceValues(pubmedId,
-								authorId);
-					}
+			contributors = (NodeList) articleMeta.getElementsByTagName(Constants.CONTRIBUTOR_GROUP);
+			if (contributors.getLength() == 0)
+				return; //we have no authors
+			// process each contribution group (based on the
+			// schema there can be multiple contribution groups).
+			for (int i = 0; i < contributors.getLength();i++) {
+				processContributorGroup( (Element) contributors.item(i));
+			}
+		} catch (Exception ex) {
+			LOGGER.severe("Exception while parsing author information for file: " + 
+					fileName + ". Exception: " + ex.getMessage());
+			// No further exception is thrown - if we lack complete author information, 
+			// we still want the paper.
+		} finally {
+			contributors = null;
+			
+		}
+	} //end of extractAuthors
+		
+		
+	private void processContributorGroup(Element contributorGroup) {
+		HashMap<String,String> affiliations = null;
+		NodeList contributors = null;
+		NodeList names = null; //used to get name components for an author
+		Element contributor = null;
+		Element xref = null;
+		try {
+			affiliations = getAffiliations(contributorGroup.getElementsByTagName(Constants.AUTHOR_AFF_TAG));
+			boolean useAffiliations = affiliations != null;
+			// Get all of the contributors that are authors
+			// and add them to the output if we at least have a last name.
+			// Each contributor group MUST have at least one contributor.
+			contributors = contributorGroup.getElementsByTagName(Constants.AUTHOR_TAG);
+			for (int i = 0; i < contributors.getLength(); i++) {
+				contributor = (Element) contributors.item(i);
+				// Is this an author?
+				if (!contributor.getAttribute(Constants.CONTRIBUTOR_TYPE).equals(Constants.AUTHOR_TYPE) )
+					continue;
+				names = contributor.getElementsByTagName(Constants.AUTHOR_LAST_NAME);
+				if (names.getLength() == 0)
+					continue;  //without a last name, there is not a name based on the schema
+				String lastName = names.item(0).getTextContent();
+				names = contributor.getElementsByTagName(Constants.AUTHOR_FIRST_NAME);
+				String firstName = (names.getLength() > 0)? names.item(0).getTextContent() : null;
+				names = contributor.getElementsByTagName(Constants.AUTHOR_EMAIL);
+				String email = (names.getLength() > 0)? names.item(0).getTextContent() : null;
+				String affiliation = null; //default
+				if (useAffiliations) {
+					names = contributor.getElementsByTagName(Constants.AUTHOR_AFF_TAG);
+					if (names.getLength() > 0)
+						affiliation = affiliations.get(names.item(0).getTextContent());
+					else { //check for an xref
+						names = contributor.getElementsByTagName(Constants.AUTHOR_AFF_XREF); //get all of the xref elements
+						for (int j = 0; j < names.getLength(); j++) {
+							xref = (Element) names.item(j);
+							if (xref.hasAttribute(Constants.REFERENCE_TYPE) ) {
+								if (xref.getAttribute(Constants.REFERENCE_TYPE).equals(Constants.AUTHOR_AFF_TAG)) {
+									affiliation = affiliations.get(xref.getAttribute(Constants.AUTHOR_REF_TYPE) );
+									break; //stop looping through xref elements - we found the one we want
+								}
+							}
+						} // end of loop through the xref elements
+					} //done checking for an xref
+				} //done checking for an affilaition
+				// Get an ID for the author
+				String authorId = idGenerator.getAuthorId(firstName, lastName, email, affiliation);
+				dumpCreator.addToAuthorReferenceValues(pubmedId, authorId);
+			} //end of loop through the contributors
+		} catch (Exception ex) {
+			LOGGER.severe("Exception while parsing an author contributor group for the file: " + 
+					fileName + ". Exception: " + ex.getMessage());
+			// No further exception is thrown - if we lack complete author information, 
+			// we still want the paper and any other contributor groups
+		} finally {
+			try {affiliations.clear();}catch(Exception e){}
+			contributors = null;
+			contributor = null;
+			names = null;
+			xref = null;
+		}
+	} //end of processContributorGroup
+
+	
+	/**
+	 * getAffiliations<br/>
+	 * For each author we want to get their affiliation if it's provided.
+	 * This method is passed a Nodelist of all of the aff Elements within
+	 * a contribution group.  The aff elements may be referenced by one 
+	 * or more authors in the contribution group.
+	 * 
+	 * @return   HashMap of affiliation IDs and affiliations.  Each affiliation ID
+	 *           would be used in an xref by one or more authors in the contribution
+	 *           group.
+	 */
+	private HashMap<String,String> getAffiliations(NodeList authorAffiliations) {
+		HashMap<String,String> affilaitions = null;
+		try {
+			if (authorAffiliations.getLength() == 0)
+				return (null); //there are no affiliation elements
+			affilaitions = new HashMap<String,String>();
+			for (int i = 0; i < authorAffiliations.getLength(); i++) {
+				Element affiliation = (Element) authorAffiliations.item(i);
+				String affId = affiliation.getAttribute(Constants.AUTHOR_AFF_ID_LABEL);
+				if (affId != null && affId.length() != 0) //it could be setup as an ID for an Xref
+					affilaitions.put(affId, affiliation.getTextContent());
+				else { //instead of using an ID, it could be a value within the aff element
+					affId = affiliation.getTextContent();
+					if (affId != null && affId.length() != 0)
+						affilaitions.put(affId, affiliation.getTextContent());
 				}
 			}
 		} catch (Exception ex) {
-			LOGGER.severe("Exception while parsing author information  "
-					+ ex.getMessage());
-			throw ex;
+			LOGGER.severe("Exception while parsing author affiliations for acontributor group for the file: " + 
+					fileName + ". Exception: " + ex.getMessage());
+			// No further exception is thrown - if we lack complete author information, 
+			// we still want the paper and the author names
+			try {affilaitions.clear();} catch(Exception e){}
+			affilaitions = null;
 		}
-	}
+		return (affilaitions);
+	} //end of getAffiliations
+	
+	
 }
