@@ -78,7 +78,37 @@ public class Constants {
 	public static final String ELEMENT_CATEGORY_TAG = "article-categories";
 	public static final String ELEMENT_SUBJ_GROUP_TAG = "subj-group";
 	public static final String ELEMENT_SUBJECT_TAG = "subject";
-	public static final Class ELEMENT_CLASS = org.w3c.dom.Element.class;
+	// publication ID types in article parser class
+	public static final String PUBMED_LABEL = "pmid";  // pubmed ID
+	public static final String PMC_LABEL = "pmc";      // pubmed central ID
+	public static final String DOI_LABEL = "doi";      // Document object identifier (doi)
+	public static final byte IDTYPE_NO_ID = 0;        // no ID type set or found
+	public static final byte IDTYPE_PUBMED = 1;       // pubmed ID
+	public static final byte IDTYPE_PMC = 2;          // pubmed central ID
+	public static final byte IDTYPE_DOI = 3;          // Document object identifier (doi)
+	// publication date constants in article parser class
+	public static final String PUB_YEAR_TAG = "year";
+	public static final String PUB_MONTH_TAG = "month";
+	public static final String PUB_DAY_TAG = "day";
+	public static final String PUB_TYPE_LABEL = "pub-type"; // label for the publication type attribute in a pub-date
+	public static final String PUB_TYPE_COLLECTION = "collection";
+	public static final String PUB_TYPE_EPUB = "epub";
+	public static final String PUB_TYPE_ACCEPTED = "accepted";
+	public static final String PUB_TYPE_PMC = "pmc-release";
+	public static final String PUB_TYPE_PPUB = "ppub";
+	// author constants in article parser class
+	public static final String CONTRIBUTOR_GROUP = "contrib-group";
+	public static final String AUTHOR_AFF_TAG = "aff"; //tag for the author affiliation elements in a contributor group
+	public static final String AUTHOR_AFF_ID_LABEL = "id"; //name of the attribute in the aff element for the affiliation ID used in the author xref
+	public static final String AUTHOR_TAG = "contrib"; //tag for each contributor - we need to check if they are an author
+	public static final String CONTRIBUTOR_TYPE = "contrib-type";  //name of the attribute for the contributor type - we only want contributors that are authors
+	public static final String AUTHOR_TYPE = "author"; //value for the author contributor type
+	public static final String AUTHOR_LAST_NAME = "surname";
+	public static final String AUTHOR_FIRST_NAME = "given-names";
+	public static final String AUTHOR_EMAIL = "email"; //element name for the email address of an author
+	public static final String AUTHOR_AFF_XREF = "xref"; //xref element
+	public static final String REFERENCE_TYPE = "ref-type"; //type attribute for an xref
+	public static final String AUTHOR_REF_TYPE = "rid"; //attribute value for an author reference type
 	
 	
 }
