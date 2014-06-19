@@ -47,16 +47,19 @@ public class PubmedDump {
 	/**
 	 *  Adds the given values to 'article' table insert values.
 	 *  
-	 * @param pubmedId - pubmed Id of Article
-	 * @param pubDate - published date
+	 * @param pubmedId - pubmed Id (or alternate ID) of the Article
+	 * @param idType - Byte with the type for ID (based on options in the Constants class)
+	 * @param pubDate - published date as a string
+	 * @param pubDateType - type of publication date (e.g., epublication, ppublication, accepted, etc.)
 	 * @param articleTitle - title of the article
 	 * @param abstractTex - abstract Text
 	 * @param confId - conference Id
 	 * @param volId - volume Id
 	 */
-	public void addToArticleValues(String pubmedId , String pubDate , String articleTitle , String abstractTex , String confId , String volId ){
+	public void addToArticleValues(String pubmedId, Byte idType, String pubDate, String pubDateType, String articleTitle, String abstractTex, String confId, String volId ){
 //		String values = String.format(SQLQueries.QUERY_VALUES_ARTICLE_TABLE,pubmedId,pubDate,articleTitle,abstractTex,confId,volId);
 		String values = "(" + formatStringForDb(pubmedId) + "," + 
+						String.valueOf(idType) + "," + 
 				        formatStringForDb(pubDate) + ", " +
 				        formatStringForDb(articleTitle) + "," + 
 				        formatStringForDb(abstractTex) + "," + 
@@ -78,11 +81,17 @@ public class PubmedDump {
 	 * Adds the given author values to 'author' table insert values.
 	 * 
 	 * @param authorId - Generated author Id
-	 * @param givenName - author given name
-	 * @param surName - author surName
+	 * @param firstName - author given name
+	 * @param lastName - author surName
+	 * @param email
+	 * @param affiliation
 	 */
-	public void addToAuthorValues(String authorId , String givenName , String surName){
-		String values = String.format(SQLQueries.QUERY_VALUES_AUTHOR_TABLE, authorId , givenName ,surName);
+	public void addToAuthorValues(String authorId , String firstName , String lastName, String email, String affiliation){
+		String values = "(" + authorId + "," + 
+	                    formatStringForDb(firstName) + ", " +
+	                    formatStringForDb(lastName) + ", " +
+	                    formatStringForDb(email) + ", " +
+	                    formatStringForDb(affiliation) + ")";
 		addToList(values,authorValues);
 	}
 	
@@ -161,7 +170,9 @@ public class PubmedDump {
 	 * @param seriesText
 	 */
 	public void addToCategoryValues(String categoryId, String parentCategory,String subj ){
-		String values = String.format(SQLQueries.QUERY_VALUES_CATEGORY_TABLE, categoryId,parentCategory,subj);
+		String values = "(" +  formatStringForDb(categoryId) + ", " +
+				               formatStringForDb(parentCategory) + ", " +
+				               formatStringForDb(subj) + ")";
 		addToList(values,categoryValues);
 	}
 	
