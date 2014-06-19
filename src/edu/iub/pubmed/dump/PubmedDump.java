@@ -61,6 +61,7 @@ public class PubmedDump {
 		String values = "(" + formatStringForDb(pubmedId) + "," + 
 						String.valueOf(idType) + "," + 
 				        formatStringForDb(pubDate) + ", " +
+				        formatStringForDb(pubDateType) + ", " +
 				        formatStringForDb(articleTitle) + "," + 
 				        formatStringForDb(abstractTex) + "," + 
 				        formatStringForDb(confId) + "," + 
