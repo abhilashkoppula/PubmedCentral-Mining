@@ -1,6 +1,7 @@
 package edu.iub.pubmed.utils;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Element;
 
@@ -109,6 +110,6 @@ public class Constants {
 	public static final String AUTHOR_AFF_XREF = "xref"; //xref element
 	public static final String REFERENCE_TYPE = "ref-type"; //type attribute for an xref
 	public static final String AUTHOR_REF_TYPE = "rid"; //attribute value for an author reference type
-	
+	public static final Pattern AFFILIATION_PATTERN = Pattern.compile("^(\\d*\\s*)(\\D+.*)");
 	
 }
