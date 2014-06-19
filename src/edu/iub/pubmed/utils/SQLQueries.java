@@ -16,7 +16,7 @@ public interface SQLQueries {
 	public static final String QUERY_INSERT_CONFERENCE_TABLE = "INSERT INTO conference VALUES";
 	public static final String QUERY_INSERT_VOLUME_TABLE = "INSERT INTO volume VALUES";
 	//public static final String QUERY_INSERT_CITATION_TABLE = null;
-	public static final String QUERY_INSERT_PUBMED_REFERENCE_TABLE = "INSERT INTO pubmed_reference VALUES";
+	public static final String QUERY_INSERT_PUBMED_REFERENCE_TABLE = "INSERT INTO citation_reference VALUES";
 	public static final String QUERY_INSERT_KEYWORD_TABLE = "INSERT INTO keyword VALUES";
 	public static final String QUERY_INSERT_KEYWORD_REFERENCE_TABLE = "INSERT INTO keyword_reference VALUES";
 	

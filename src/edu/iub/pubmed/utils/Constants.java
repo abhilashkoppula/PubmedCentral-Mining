@@ -53,7 +53,7 @@ public class Constants {
 	public static  String FILE_PREFIX_CATEGORY = DUMP_DIR+"/category/category_";
 	public static  String FILE_PREFIX_CATEGORY_REFERENCE = DUMP_DIR+"/category/category_reference_";
 	public static  String FILE_PREFIX_ARTICLE = DUMP_DIR+"/article/article_";
-	public static  String FILE_PREFIX_PUBMED_REFERENCE = DUMP_DIR+"/citations/pubmed_reference_";
+	public static  String FILE_PREFIX_PUBMED_REFERENCE = DUMP_DIR+"/citations/citation_reference_";
 	public static  String FILE_PREFIX_VOLUME = DUMP_DIR+"/volume/volume_";
 	public static  String FILE_PREFIX_CONFERENCE = DUMP_DIR+"/conference/conference_";
 	
