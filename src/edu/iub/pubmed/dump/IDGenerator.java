@@ -47,14 +47,20 @@ public class IDGenerator {
 	 * 
 	 */
 
-	public  String getAuthorId(String givenName, String surName) {
-		String author = givenName + "-" + surName;
+	public  String getAuthorId(String firstName, String lastName, String email, String affiliation) {
+		StringBuilder author = new StringBuilder(lastName);
+		if (firstName != null) 
+			author.append("-" + firstName);
+		if (email != null) 
+			author.append("-" + email);
+		if (affiliation != null) 
+			author.append("-" + affiliation);
 		Long authorId = null;
-		authorId = author_ids.get(author);
+		authorId = author_ids.get(author.toString());
 		if (authorId == null) {
 			authorId = ++authorIDSequence;
-			author_ids.put(author, authorId);
-			pubmedDump.addToAuthorValues(String.valueOf(authorId), givenName, surName);
+			author_ids.put(author.toString(), authorId);
+			pubmedDump.addToAuthorValues(String.valueOf(authorId), firstName, lastName, email, affiliation);
 		}
 		return String.valueOf(authorId);
 	}
