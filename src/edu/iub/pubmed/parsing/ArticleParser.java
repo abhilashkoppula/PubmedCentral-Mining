@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -927,13 +928,20 @@ public class ArticleParser {
 			affilaitions = new HashMap<String,String>();
 			for (int i = 0; i < authorAffiliations.getLength(); i++) {
 				Element affiliation = (Element) authorAffiliations.item(i);
+				String location = affiliation.getTextContent();
+				// The affiliation is likely to start with (one or more) digit(s) (1-9)
+				// since these are used to affiliate authors with an institution. We want to
+				// strip these off (and any subsequent blank space
+				Matcher parsed = Constants.AFFILIATION_PATTERN.matcher(location);
+				if (parsed.matches())
+					location = parsed.group(2);
 				String affId = affiliation.getAttribute(Constants.AUTHOR_AFF_ID_LABEL);
 				if (affId != null && affId.length() != 0) //it could be setup as an ID for an Xref
-					affilaitions.put(affId, affiliation.getTextContent());
+					affilaitions.put(affId, location.trim());
 				else { //instead of using an ID, it could be a value within the aff element
 					affId = affiliation.getTextContent();
 					if (affId != null && affId.length() != 0)
-						affilaitions.put(affId, affiliation.getTextContent());
+						affilaitions.put(affId, location.trim());
 				}
 			}
 		} catch (Exception ex) {
