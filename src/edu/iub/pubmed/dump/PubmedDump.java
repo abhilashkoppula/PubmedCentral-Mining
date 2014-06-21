@@ -25,6 +25,7 @@ public class PubmedDump {
 	List<String> conferenceValues = null;
 	List<String> categoryValues = null;
 	List<String> categoryReferenceValues = null;
+	List<String> citationValues = null;
 	List<String> pubmeReferenceValues = null;
 	DumpFiles dumpFiles = null;
 	
@@ -40,6 +41,7 @@ public class PubmedDump {
 		conferenceValues = new ArrayList<String>();
 		categoryValues = new ArrayList<String>();
 		categoryReferenceValues = new ArrayList<String>();
+		citationValues = new ArrayList<String>();
 		pubmeReferenceValues = new ArrayList<String>();
 	}
 	
@@ -74,8 +76,8 @@ public class PubmedDump {
 	 * @param pubmedId - pubmedId of article
 	 * @param authorId - authorId from article table
 	 */
-	public void addToAuthorReferenceValues(String pubmedId , String authorId){
-		String values = String.format(SQLQueries.QUERY_VALUES_AUTHOR_REFERENCE_TABLE, pubmedId, authorId);
+	public void addToAuthorReferenceValues(String pubmedId , byte idType, String authorId){
+		String values = String.format(SQLQueries.QUERY_VALUES_AUTHOR_REFERENCE_TABLE, pubmedId, idType, authorId);
 		addToList(values,authorReferencesValues);
 	}
 	/**
@@ -113,7 +115,7 @@ public class PubmedDump {
 	 * @param keywordId - generated id of keyword
 	 */
 	public void addToKeyWordValues(String keywordId , String keyword ){
-		String values = String.format(SQLQueries.QUERY_VALUES_KEYWORD_TABLE,keywordId,keyword);
+		String values = String.format(SQLQueries.QUERY_VALUES_KEYWORD_TABLE,keywordId,keyword, null);
 		addToList(values,keywordValues);
 		
 	}
@@ -124,8 +126,8 @@ public class PubmedDump {
 	 * @param pubmedId - pubmedId of the article 
 	 * @param keywordId - keyword Id from keyword table
 	 */
-	public void addToKeyWordReferenceValues(String pubmedId , String keywordId){
-		String values = String.format(SQLQueries.QUERY_VALUES_KEYWORD_REFERENCE_TABLE,pubmedId,keywordId);
+	public void addToKeyWordReferenceValues(String pubmedId , byte idType, String keywordId){
+		String values = String.format(SQLQueries.QUERY_VALUES_KEYWORD_REFERENCE_TABLE,pubmedId, String.valueOf(idType), keywordId);
 		addToList(values,keywordReference);
 	}
 	
@@ -141,7 +143,7 @@ public class PubmedDump {
 	 * @param confTheme - conference theme
 	 * @param acronym - acronym of the conference
 	 */
-	public void addToConferenceValues(String confId , String confDate , String confName , String confNum , String confLoc , String confSpon , String confTheme,String acronym){
+	public void addToConferenceValues(String confId , String confDate , String confName , String confNum , String confLoc , String confSpon , String confTheme, String acronym){
 		String values = String.format(SQLQueries.QUERY_VALUES_CONFERENCE_TABLE, confId,confDate,confName,confNum,confLoc,confSpon,confTheme,acronym,null);
 		addToList(values,conferenceValues);
 	}
@@ -170,7 +172,7 @@ public class PubmedDump {
 	 * @param seriesTitle
 	 * @param seriesText
 	 */
-	public void addToCategoryValues(String categoryId, String parentCategory,String subj ){
+	public void addToCategoryValues(String categoryId, String parentCategory, String subj ){
 		String values = "(" +  formatStringForDb(categoryId) + ", " +
 				               formatStringForDb(parentCategory) + ", " +
 				               formatStringForDb(subj) + ")";
@@ -183,21 +185,38 @@ public class PubmedDump {
 	 * @param pubmedId - pubmedId of the article
 	 * @param categoryId - id of the category used from category table
 	 */
-	public void addToCategoryReferenceValues(String pubmedId , String categoryId){
-		String values = String.format(SQLQueries.QUERY_VALUES_CATEGORY_REFERENCE_TABLE, pubmedId,categoryId);
+	public void addToCategoryReferenceValues(String pubmedId , byte typeId, String categoryId){
+		String values = String.format(SQLQueries.QUERY_VALUES_CATEGORY_REFERENCE_TABLE, pubmedId, typeId, categoryId);
 		addToList(values,categoryReferenceValues);
+	}
+	
+	/**
+	 * Adds the given values to 'citation' table insert values.
+	 * 
+	 * @param citationId - ID for the citation pair (citing and cited article)
+	 * @param pubmedId - String with the PubMed ID of the article
+	 * @param idType - byte indicating the type of ID (could be PubMed, PubMed Central, or DOI)
+	 * @param citedpubmedId - PubMed ID of the cited article
+	 * @param leftText - left 150 characters from where this article is cited
+	 * @param rightText - right 150 characters from where this article is cited
+	 */
+	public void addToCitationValues(long citationId, String pubmedId, byte idType, String citedpubmedId, byte citedIdType) {
+		String values = String.format(SQLQueries.QUERY_VALUES_CITATION_TABLE, citationId, pubmedId, idType, citedpubmedId, citedIdType);
+		addToList(values, citationValues);
 	}
 	
 	/**
 	 * Adds the given values to 'pubmed_reference' table insert values.
 	 * 
-	 * @param pubmedId - pubmed Id of the article
-	 * @param citedpubmedId - pubmed Id of the citation
+	 * @param citationId - ID for the citation pair (citing and cited article)
+	 * @param referenceId - short int with the increment for reference between the 
+	 *                      citing and cited artcle within the citing article. Each
+	 *                      paper may be cited more than once within a single article 
 	 * @param leftText - left 150 characters from where this article is cited
 	 * @param rightText - right 150 characters from where this article is cited
 	 */
-	public void addToPubmedReference(String pubmedId , String citedpubmedId , String leftText , String rightText){
-		String values = String.format(SQLQueries.QUERY_VALUES_PUBMED_REFERENCE_TABLE,pubmedId,citedpubmedId,leftText,rightText);
+	public void addToPubmedReference(long citationId, short referenceId, String leftText, String rightText){
+		String values = String.format(SQLQueries.QUERY_VALUES_PUBMED_REFERENCE_TABLE, citationId, referenceId, leftText, rightText);
 		addToList(values,pubmeReferenceValues);
 	}
 	
@@ -281,6 +300,11 @@ public class PubmedDump {
 		dumpFile = dumpFiles.getKeywordReferenceFile();
 		dumpFile = createDump(keywordReference, dumpFile, FILE_PREFIX_KEYWORD_REFERENCE, SQLQueries.QUERY_INSERT_KEYWORD_REFERENCE_TABLE);
 		dumpFiles.setKeywordReferenceFile(dumpFile);
+		
+		//Dumping the citation reference table
+		dumpFile = dumpFiles.getCitationFile();
+		dumpFile = createDump(citationValues, dumpFile, FILE_PREFIX_CITATION, SQLQueries.QUERY_INSERT_CITATION_TABLE);
+		dumpFiles.setCitationFile(dumpFile);
 		
 		
 		// Dumping pubmed reference table
