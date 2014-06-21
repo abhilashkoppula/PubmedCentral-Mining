@@ -21,16 +21,24 @@ import edu.iub.pubmed.utils.Constants;
  */
 public class DumpFiles {
 	String dumpDirectory = null;
-	String articleFile = null;
-	String keywordFile = null;
-	String keywordReferenceFile = null;
-	String authorFile = null;
-	String authorReferenceFile = null;
-	String categoryFile = null;
-	String categoryReferenceFile = null;
-	String volumeFile = null;
+	String articleFile = null;            // an entry for each article
+	String keywordFile = null;            // keywords used to describe the articles
+	String keywordReferenceFile = null;   // relationship between a keyword and a paper
+	String authorFile = null;             // each author in any of the papers - the author 
+	                                      // is currently considered unique based on their 
+	                                      // first and last name as well as their email and 
+	                                      // the name of the institution they are affiliated 
+	                                      // with as listed in the paper.
+	String authorReferenceFile = null;    // relationship between an author and an article
+	String categoryFile = null;           // papers are classified into broad categories
+	String categoryReferenceFile = null;  // relationship between an article and a category  
+	String volumeFile = null;             // Where a paper was published
 	String conferenceFile = null;
-	String pumbedReferenceFile = null;
+	String citationFile = null;           // relationship between citing and cited paper
+	String pumbedReferenceFile = null;    // the contextual citation of a referenced paper - there 
+	                                      // could be multiple records for a relation in the citation
+	                                      // file, but there will generally be at least one (unless 
+	                                      // a paper lists another paper as a reference without citing it). 
 	
 
 	/**
@@ -100,8 +108,8 @@ public class DumpFiles {
 		 closeDumpFile(keywordReferenceFile);
 		 closeDumpFile(volumeFile);
 		 closeDumpFile(conferenceFile);
+		 closeDumpFile(citationFile);
 		 closeDumpFile(pumbedReferenceFile);
-		 
 	 }
 
 	/**
@@ -297,7 +305,15 @@ public class DumpFiles {
 	public void setConferenceFile(String conferenceFile) {
 		this.conferenceFile = conferenceFile;
 	}
-
+	
+	
+	public String getCitationFile() {
+		return citationFile;
+	}
+	
+	public void setCitationFile(String citationFile) {
+		this.citationFile = citationFile;
+	}
 
 	public String getPumbedReferenceFile() {
 		return pumbedReferenceFile;
