@@ -3,7 +3,6 @@ package edu.iub.pubmed.dump;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * ID Generator for actual tables . 
  * 
@@ -16,12 +15,14 @@ public class IDGenerator {
 	public  long categoryIDSequence = 9999;
 	public  long authorIDSequence = 9;
 	public  long confSequence = 999999;
-	public  long volSequence = 99999999;	
+	public  long volSequence = 99999999;
+	public  long citationIDSequence = 0;
 	public  Map<String, Long> keyword_ids = null;
 	public  Map<String, Long> category_ids = null;
 	public  Map<String, Long> author_ids = null;
 	public  Map<String, Long> conf_ids = null;
 	public  Map<String, Long> vol_ids = null;
+	public  Map<String, CitationPair> citation_ids = null;
 	PubmedDump pubmedDump = null;
 
 	
@@ -33,6 +34,7 @@ public class IDGenerator {
 		 author_ids = new HashMap<String, Long>();
 		 conf_ids = new HashMap<String, Long>();
 		 vol_ids = new HashMap<String, Long>();
+		 citation_ids = new HashMap<String, CitationPair>();
 	}
 	
 	
@@ -46,7 +48,6 @@ public class IDGenerator {
 	 * @return - generated Id
 	 * 
 	 */
-
 	public  String getAuthorId(String firstName, String lastName, String email, String affiliation) {
 		StringBuilder author = new StringBuilder(lastName);
 		if (firstName != null) 
@@ -123,7 +124,7 @@ public class IDGenerator {
 		String key = subject + "-" + parentCategory;
 		categoryId = category_ids.get(key);
 		if (categoryId == null) {
-			categoryId = ++keywodIDSequence;
+			categoryId = ++categoryIDSequence;
 			category_ids.put(key, categoryId);
 			pubmedDump.addToCategoryValues(String.valueOf(categoryId), parentCategory, subject);
 		}			
@@ -156,4 +157,19 @@ public class IDGenerator {
 		return String.valueOf(volId);
 	}
 
+	public CitationPair getCitationId(String pubMedId, byte idType, String citedPubMedId, byte citedIdType) {
+		String citationKey = pubMedId + "-"+String.valueOf(idType)+"-"+citedPubMedId+"-"+String.valueOf(citedIdType);
+		CitationPair citation = citation_ids.get(citationKey);
+		if (citation == null) {
+			citationIDSequence++;
+			citation = new CitationPair(citationIDSequence, (short) 1);
+			citation_ids.put(citationKey, citation);
+		} else
+			citation.incrementReferenceId();
+
+		return (new CitationPair(citation));
+	}
+	
+	
+	
 }
