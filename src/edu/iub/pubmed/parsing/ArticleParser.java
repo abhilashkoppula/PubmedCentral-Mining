@@ -27,6 +27,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import edu.iub.pubmed.dump.CitationPair;
 import edu.iub.pubmed.dump.IDGenerator;
 import edu.iub.pubmed.dump.PubmedDump;
 import edu.iub.pubmed.exceptions.NoPubmedIdException;
@@ -203,7 +204,14 @@ public class ArticleParser {
 				}
 				rightText = citedXML.substring(
 						citationIndex + citationString.length(), endIndex);
-				dumpCreator.addToPubmedReference(pubmedId, citedPubmedId, UtilityMethods.formatString(leftText), UtilityMethods.formatString(rightText));
+				//TODO: When we get IDs for citations other than pubmed in the future, need to set the cited ID type
+				CitationPair citation = idGenerator.getCitationId(pubmedId, idType, citedPubmedId, Constants.IDTYPE_PUBMED);
+				long citationId = citation.getCitationId();
+				short referenceId = citation.getReferenceId();
+				if (referenceId == 1) //first citation for this pair
+					dumpCreator.addToCitationValues(citationId, pubmedId, idType, citedPubmedId, Constants.IDTYPE_PUBMED);
+				// Add the specific citation context (possibly many between each pair)
+				dumpCreator.addToPubmedReference(citationId, citation.getReferenceId(), UtilityMethods.formatString(leftText), UtilityMethods.formatString(rightText));
 			}
 		}
 	}
@@ -716,7 +724,7 @@ public class ArticleParser {
 				if (subject.length() == 0)
 					continue;  //we don't want empty subjects
 				String categoryId = idGenerator.getCategoryId(subject, parentId);
-				dumpCreator.addToCategoryReferenceValues(pubmedId, categoryId);
+				dumpCreator.addToCategoryReferenceValues(pubmedId, idType, categoryId);
 				if (mySubjectId == null)
 					mySubjectId = categoryId; //set to the first subject's ID
 			}
@@ -806,7 +814,7 @@ public class ArticleParser {
 				if (keyWord != null && keyWord.length() < 200
 						&& uniqueKeyWords.add(keyWord)) {
 					keywordId = idGenerator.generateKeywordId(keyWord);
-					dumpCreator.addToKeyWordReferenceValues(pubmedId, keywordId);
+					dumpCreator.addToKeyWordReferenceValues(pubmedId, idType, keywordId);
 				}
 			}
 		} catch (Exception ex) {
@@ -892,7 +900,7 @@ public class ArticleParser {
 				} //done checking for an affilaition
 				// Get an ID for the author
 				String authorId = idGenerator.getAuthorId(firstName, lastName, email, affiliation);
-				dumpCreator.addToAuthorReferenceValues(pubmedId, authorId);
+				dumpCreator.addToAuthorReferenceValues(pubmedId, idType, authorId);
 			} //end of loop through the contributors
 		} catch (Exception ex) {
 			LOGGER.severe("Exception while parsing an author contributor group for the file: " + 
