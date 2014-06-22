@@ -433,13 +433,11 @@ public class ArticleParser {
 	private void extractArticlemeta(Element articleMeta) throws Exception {
 		String articleTitle = null;
 		String abstractText = null;
-		String  pubDate = null;
 		try {
 		extractPubmedId(articleMeta);
 		articleTitle = getArticleTitle(articleMeta);
 		abstractText = getAbstractText(articleMeta);
 		extractPubDate(articleMeta);
-		//TODO: pub Date
 		   dumpCreator.addToArticleValues(pubmedId, idType, publicationDate.toString(), pubDateType, UtilityMethods.formatString(articleTitle), UtilityMethods.formatString(abstractText), confId,  volId);
 		}catch(Exception ex){
 			LOGGER.warning("Exception while parsing article-meta element for article details :: " + ex.getMessage());
@@ -461,8 +459,6 @@ public class ArticleParser {
 	 */
 	private void extractPubDate(Element articleMeta) {
 		NodeList pubDates = null;
-		NodeList dateChildren = null;
-		Node child = null;
 		Element pubDateElement = null;
 		HashMap<String,Date> publicationDates = null;
 		
@@ -473,31 +469,7 @@ public class ArticleParser {
 			pubDates = articleMeta.getElementsByTagName("pub-date");
 			for (int i = 0; i < pubDates.getLength(); i++) {
 				pubDateElement = (Element) pubDates.item(i);
-				// The pub-date can contain a variety of different elements, 
-				// including year, month, and day, but it can also be expressed
-				// as a season or other text values.
-				// if there is not at least a year, we will not process the date.
-				int year = 0; int month = 0; int day = 0;
-				dateChildren = pubDateElement.getChildNodes();
-				for (int j = 0; j < dateChildren.getLength(); j++) {
-					child = dateChildren.item(j);
-					if (child.getNodeType() != Node.ELEMENT_NODE)
-						continue; //we only care about element nodes
-					String tag = ((Element)child).getTagName();
-					if (tag.equals(Constants.PUB_YEAR_TAG))
-						year = Integer.parseInt( child.getTextContent() );
-					else if (tag.equals(Constants.PUB_MONTH_TAG))
-						month = Integer.parseInt( child.getTextContent() );
-					else if (tag.equals(Constants.PUB_DAY_TAG))
-						day = Integer.parseInt( child.getTextContent() );
-				} //get the relevant child elements out of a pub-date
-				if (year == 0)
-					continue;  //we cannot build a publication date without a year
-				// get the date type
-				pubDateElement.getAttribute(Constants.PUB_TYPE_LABEL);
-				Calendar pubCalendar = Calendar.getInstance();
-				pubCalendar.set(year, month, day);
-				publicationDates.put(pubDateElement.getAttribute(Constants.PUB_TYPE_LABEL), new Date(pubCalendar.getTimeInMillis()));
+				processPubDate(publicationDates, pubDateElement);
 			} //loop through the possible publication dates
 			if (publicationDates.size() == 0)
 				return; //we found no date that would work - leave the date and type as null
@@ -531,12 +503,62 @@ public class ArticleParser {
 			pubDateType = null;
 		} finally {
 			pubDates = null;
-			dateChildren = null;
-			child = null;
 			pubDateElement = null;
 			try{publicationDates.clear();}catch(Exception e){}
 		}
 	} //end of extractPubDate
+		
+	
+	/**
+	 * processPubDate<br/>
+	 * This method parses out a single date form the publication dates.  This is a separate
+	 * method so that any error in processing a single publication date can be caught without
+	 * preventing the processing of other publication dates for an article.
+	 * 
+	 * @param publicationDates  HashMap of Strings and dates where the string is the type 
+	 *                          of publication date and the date is the corresponding SQL Date.
+	 *                          The processed date will be added to this hashmap.
+	 * @param pubDateElement    The element to be processed.
+	 */
+	private void processPubDate(HashMap<String,Date> publicationDates, Element pubDateElement) {
+		NodeList dateChildren = null;
+		Node child = null;
+		
+		try {
+			// The pub-date can contain a variety of different elements, 
+			// including year, month, and day, but it can also be expressed
+			// as a season or other text values.
+			// if there is not at least a year, we will not process the date.
+			int year = 0; int month = 0; int day = 1; //if only the year is set, default to the first day
+			dateChildren = pubDateElement.getChildNodes();
+			for (int j = 0; j < dateChildren.getLength(); j++) {
+				child = dateChildren.item(j);
+				if (child.getNodeType() != Node.ELEMENT_NODE)
+					continue; //we only care about element nodes
+				String tag = ((Element)child).getTagName();
+				if (tag.equals(Constants.PUB_YEAR_TAG))
+					year = Integer.parseInt( child.getTextContent().trim() );
+				else if (tag.equals(Constants.PUB_MONTH_TAG))
+					month = Integer.parseInt( child.getTextContent().trim() );
+				else if (tag.equals(Constants.PUB_DAY_TAG))
+					day = Integer.parseInt( child.getTextContent().trim() );
+			} //get the relevant child elements out of a pub-date
+			if (year == 0)
+				return;;  //we cannot build a publication date without a year
+			// get the date type
+			Calendar pubCalendar = Calendar.getInstance();
+			pubCalendar.set(year, month, day);
+			publicationDates.put(pubDateElement.getAttribute(Constants.PUB_TYPE_LABEL), new Date(pubCalendar.getTimeInMillis()));
+		} catch (Exception ex) {
+			LOGGER.severe("Exception while parsing out a publication date for " + fileName + 
+					" the date being processed was:\n" + pubDateElement.toString());
+			publicationDate = null;
+			pubDateType = null;
+		} finally {
+			dateChildren = null;
+			child = null;
+		}
+	} //end of processPubDate
 
 	/**
 	 * Retrieves text form the Article Meta
