@@ -146,7 +146,15 @@ public class PubmedDump {
 	 * @param acronym - acronym of the conference
 	 */
 	public void addToConferenceValues(String confId , String confDate , String confName , String confNum , String confLoc , String confSpon , String confTheme, String acronym){
-		String values = String.format(SQLQueries.QUERY_VALUES_CONFERENCE_TABLE, confId,confDate,confName,confNum,confLoc,confSpon,confTheme,acronym,null);
+		String values = "(" + confId + "," + 
+        formatStringForDb(confDate) + ", " +
+        formatStringForDb(confName) + ", " +
+        formatStringForDb(confNum) + ", " +
+        formatStringForDb(confLoc) + ", " +
+        formatStringForDb(confSpon) + ", " +
+        formatStringForDb(confTheme) + ", " +
+        formatStringForDb(acronym) + ", " +
+        "null)";
 		addToList(values,conferenceValues);
 	}
 	
@@ -161,7 +169,12 @@ public class PubmedDump {
 	 * @param publisherName - publisher name from journal-meta
 	 */
 	public void addToVolumeValues(String volId , String vol, String issue , String journalId , String journalTitle, String publisherName){
-		String values = String.format(SQLQueries.QUERY_VALUES_VOLUME_TABLE, volId,vol,issue,journalId,journalTitle,publisherName);
+		String values = "(" + volId + "," + 
+        formatStringForDb(vol) + ", " +
+        formatStringForDb(issue) + ", " +
+        formatStringForDb(journalId) + ", " +
+        formatStringForDb(journalTitle) + ", " +
+        formatStringForDb(publisherName) + ")";
 		addToList(values,volumeValues);
 	}
 	
@@ -208,7 +221,7 @@ public class PubmedDump {
 	}
 	
 	/**
-	 * Adds the given values to 'pubmed_reference' table insert values.
+	 * Adds the given values to 'citation_reference' table insert values.
 	 * 
 	 * @param citationId - ID for the citation pair (citing and cited article)
 	 * @param referenceId - short int with the increment for reference between the 
