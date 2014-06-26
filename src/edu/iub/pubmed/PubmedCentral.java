@@ -1,5 +1,7 @@
 package edu.iub.pubmed;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -25,14 +27,15 @@ public class PubmedCentral {
 	private IDGenerator idGenerator = null;
 	private PubmedDump pubmedDump = null;
 	private GraphDelegator graphDelegator = null;
+	HashSet<String> articleIds = null;
 	
-	private DatasetOperations datasetOperations = null;
+//	private DatasetOperations datasetOperations = null;
 
-	/**
-	 * Set of pubmedIds that are processed already . This is to avoid 
-	 * processing the duplicate articles(articles with same pubmedId) .
-	 */
-	public static Set<String> pubmedIds = new HashSet<String>();
+//	/**
+//	 * Set of pubmedIds that are processed already . This is to avoid 
+//	 * processing the duplicate articles(articles with same pubmedId) .
+//	 */
+//	public static Set<String> pubmedIds = new HashSet<String>();
  
 	public PubmedCentral() {
 		pubmedDump = new PubmedDump();
@@ -40,6 +43,76 @@ public class PubmedCentral {
 		graphDelegator = new GraphDelegator();
 	}
 
+	
+	/**
+	 * Entry method to the pubmed mining which handles total data set parsing
+	 * 
+	 * @param datasetPath - root directory path of the data set
+	 * @throws Exception - if any exception occurred in the process
+	 * 
+	 */
+	public void load(String datasetPath) throws Exception {
+		LOGGER.log(Level.INFO, "Started parsing and loading of the dataset");
+		LOGGER.config("Given dataset location " + datasetPath);
+		traverseAndLoad(datasetPath);
+		pubmedDump.dumpRemaining(); // To dump the last values
+		LOGGER.log(Level.INFO, "Completed parsing and loading of the dataset");
+		LOGGER.log(Level.INFO, "Pruning the graphs for better performance");
+		graphDelegator.removeNonPubmedCentralNodes();
+		LOGGER.log(Level.INFO, "Completed Dataset loading and Graph creation");
+	} //end of load
+	
+	
+	/**
+	 * Traverses the given path recursively and for each file invokes
+	 * {@code pubmedCentral.loadFileToBackend} to parse and load the file . Also
+	 * before processing a directory , values in {@link PubmedDump} are checked
+	 * to avoid out of memory exception
+	 * 
+	 * @param currentPath
+	 *            - path of the directory or file
+	 * @throws Exception
+	 *             - throws exception if parsing of the file fails
+	 */
+	public void traverseAndLoad(String currentPath) throws Exception {
+		File currentDirectory = null;
+		ArrayList<File> directoriesToProcess = new ArrayList<File>();
+		articleIds = new HashSet<String>();
+			
+		currentDirectory = new File(currentPath);
+		if (!checkDirectoryExists(currentDirectory) )
+			return;
+		//While there are directories, process them
+		directoriesToProcess.add(currentDirectory);
+		while (!directoriesToProcess.isEmpty()) {
+			currentDirectory = directoriesToProcess.remove(0);
+			LOGGER.info("Processing  directory :: " + currentDirectory.getName() );
+			// Process This directory
+			File[] subFiles = currentDirectory.listFiles();
+			for (File currentFile: subFiles) {
+
+				if (currentFile.isFile()) { // If file, then parse  
+					loadFileToBackend(currentFile.getAbsolutePath());
+				} else if (currentFile.isDirectory()) { 
+					//add directory to list of directories to process
+					directoriesToProcess.add(currentFile);
+					//						currentDirectory = currentFile.getAbsolutePath();
+					//						prevDirectory = currentDirectory;
+				}
+				// check if we need to dump after processing this directory
+				checkForDumping();
+			} //loop through contents of the directory
+			articleIds.clear();  //done with this journal
+		} //process all directories
+		articleIds = null;
+	} //end of traverseAndLoad
+			
+		
+	private boolean checkDirectoryExists(File directory) {
+		return (directory != null && directory.exists() );
+	} //end of checkDirectoryExists
+
+	
 	/**
 	 * Creates Article Parser object to parse the give file and if parsing is successful
 	 * updates both the graphs 
@@ -52,54 +125,40 @@ public class PubmedCentral {
 		try {
 			LOGGER.log(Level.FINEST,"Parsing file" + fileName);
 			articleParser = new ArticleParser(fileName,idGenerator,pubmedDump);
-			articleParser.parse();
-			LOGGER.log(Level.FINEST,"Parsing of {0} successfull ", fileName);
-			graphDelegator.updateGraph(articleParser.getPubmedId(),
+			// check if the article ID is already in the dataset
+			String articleId = articleParser.getPubmedId();
+			if (articleIds.add(articleId) ){
+				articleParser.parse();
+				LOGGER.log(Level.FINEST,"Parsing of {0} successfull ", fileName);
+				graphDelegator.updateGraph(articleParser.getPubmedId(),
 						articleParser.getKeywords(),
 						articleParser.getCitations());
-			
+			} else {
+				LOGGER.warning("Article ID: " + articleId + 
+					" from file " + fileName +
+					" already exist is in the dataset and was not processed again.");
+			}
 			articleParser = null;
 		} catch (Exception ex) {
-			LOGGER.warning("Exception while parsing ::" + ex.getMessage());
+			LOGGER.severe("Exception while parsing ::" + ex.getMessage());
 		}
-
-	}
+	}//end of loadFileToBackend
 	
-	/**
-	 * Entry method to the pubmed mining which handles total data set parsing
-	 * 
-	 * @param datasetPath - root directory path of the data set
-	 * @throws Exception - if any exception occurred in the process
-	 * 
-	 */
-	public void load(String datasetPath) throws Exception {
-		LOGGER.log(Level.INFO, "Started parsing and loading of the dataset");
-		LOGGER.config("Given dataset location " + datasetPath);
-		datasetOperations = new DatasetOperations(datasetPath, this);
-		datasetOperations.traverseAndLoad(datasetPath);
-		pubmedDump.dumpRemaining(); // To dump the last values
-		LOGGER.log(Level.INFO, "Completed parsing and loading of the dataset");
-		LOGGER.log(Level.INFO, "Pruning the graphs for better performance");
-		graphDelegator.removeNonPubmedCentralNodes();
-		LOGGER.log(Level.INFO, "Completed Dataset loading and Graph creation");
-	}
 
 	/** 
-	 *  Checks if values exceeded the MAX_LIMIT and if exceeds 
-	 *  creates dump files 
+	 *  Checks if values exceeded the MAX_LIMIT and if does, then 
+	 *  creates dump files. 
 	 *  
-	 * @param prevDirectory - directory up to which parsing and dumping is successful
-	 * @param currentDirectory - directory up to which parsing is successful and eligible for dumping
-	 * @throws Exception - 
+	 * @throws Exception if there is a problem in creating the dump file
 	 */
-	public void checkForDumping(String prevDirectory, String currentDirectory)
-			throws Exception {
+	public void checkForDumping() throws Exception {
 		if (pubmedDump.checkAndDump()) {
 			LOGGER.info(" Creating dumping ");
 			pubmedDump.createDump();
 		}
-
-	}
+	} //end of checkForDumping
+	
+	
 
 	public static void main(String args[]) throws Exception {
 		if (args.length < 1) {
