@@ -13,7 +13,10 @@ import edu.iub.pubmed.PubmedCentral;
  *
  */
 public class Constants {
-	// Logger Name
+	// The logger is configured by
+	// (1) Using the parameter: -Djava.util.logging.config.file=/path/to/app.properties
+	// (2) If that parameter is not set, then it is based on the 
+	//     logging.properties file:  JAVA_HOME/jre/lib/logging.properties
 	public static final String LOGGER_NAME = "PubmedCentral_Mining";
 	// Names of the property of nodes
 	public static final String PROPERTY_PUBMED_ID = "pubmedId";
