@@ -61,7 +61,9 @@ public class ArticleParser {
 	private PubmedDump dumpCreator = null;
 	private IDGenerator idGenerator = null;
 	private HashSet<String> articleCategories = null;   // used to track if an article contains the same category more than once
-
+	private Element articleMeta = null;  //article metadata, parsed out in the constructor to get the ID
+	
+	
 	/**
 	 * Static initializer to create document factory 
 	 */
@@ -96,33 +98,38 @@ public class ArticleParser {
 	 * @param fileName - XML file name
 	 * @param idGenerator - 
 	 * @throws SAXException throws SAXException if XPath evaluation fails
-	 * @throws IOException throws IOException if file not found  
+	 * @throws IOException throws IOException if file not found
+	 * @throws Exception if there's an error in parsing out the pubmed ID and ID type  
 	 */
-	public ArticleParser(String fileName, IDGenerator idGenerator , PubmedDump pubmedDump) throws SAXException, IOException {
+	public ArticleParser(String fileName, IDGenerator idGenerator , PubmedDump pubmedDump) throws Exception {
+		NodeList rootElements = null;
+		
 		this.fileName = fileName;
 		this.document = documentBuilder.parse(fileName);
 		this.dom4jDoc = domReader.read(document);
 		this.document.getDocumentElement().normalize();
 		this.idGenerator = idGenerator;
 		this.dumpCreator = pubmedDump;
-	}
+		// Get the article metadata
+		rootElements = document.getElementsByTagName("article-meta");
+		if (rootElements.getLength() > 1) {
+			LOGGER.warning("ArticleParser-parse: the file " + fileName +
+					" contained " + rootElements.getLength() + 
+					" article metadata elements, but we only processed the first one.");
+		}
+		articleMeta = (Element) rootElements.item(0);
+		extractPubmedId(articleMeta);
+		return;
+	} //end of constructor
 
+	
 	/**
 	 * Parse the XML file and extracts all the required values 
 	 * @throws Exception 
 	 */
 	public void parse() throws Exception {
-		NodeList rootElements = null;
-		Element articleMeta = null;
 
 		try {
-			rootElements = document.getElementsByTagName("article-meta");
-			if (rootElements.getLength() > 1) {
-				LOGGER.severe("ArticleParser-parse: the file " + fileName +
-						" contained " + rootElements.getLength() + 
-						" article metadata elements, but we only processed the first one.");
-			}
-			articleMeta = (Element) rootElements.item(0);
 			extractConference(articleMeta);
 			extractVolume(document);
 			extractArticlemeta(articleMeta);
@@ -131,8 +138,7 @@ public class ArticleParser {
 			extractCategories(articleMeta);
 			extractKeyWords(articleMeta);
 			extractPubmedRef(document);
-
-			document = null;
+			return;
 		} catch (Exception ex) {
 			LOGGER.log(Level.SEVERE,"Exception while parsing {0} and discarding this file",new Object[]{fileName});
 			ex.printStackTrace();
@@ -140,8 +146,11 @@ public class ArticleParser {
 		} finally {
 			try {articleCategories.clear();} catch(Exception e){}
 			articleCategories = null;
+			document = null;
 		}
-	}
+	} //end of parse
+	
+	
 	/**
 	 * Calculates how many times each citation is cited in the paper
 	 * 
@@ -169,9 +178,7 @@ public class ArticleParser {
 			refCount.put(refId, refFreq);
 		}
 		return refCount;
-	}
-	
-	
+	} //end of findRefFrequency
 	
 	
 	/**
@@ -225,7 +232,7 @@ public class ArticleParser {
 				dumpCreator.addToPubmedReference(citationId, citation.getReferenceId(), UtilityMethods.formatString(leftText), UtilityMethods.formatString(rightText));
 			}
 		}
-	}
+	} //end of addCitationContext
 	
 	
 	/**
@@ -293,7 +300,8 @@ public class ArticleParser {
 			ex.printStackTrace();
 			throw ex;
 		}
-	}
+	} //end of extractPubmedRef
+	
 
 	/**
 	 * Extracts volume details from the XML . Volume details are available under both journal-meta
@@ -351,7 +359,7 @@ public class ArticleParser {
 			LOGGER.warning("Exception while parsing Volume Information for " + fileName);
 			ex.printStackTrace();
 		}
-	}
+	} //end of extractVolume
 
 	/**
 	 * Extracts the Conference node from article-meta and traverses to its child Nodes
@@ -406,7 +414,7 @@ public class ArticleParser {
 			LOGGER.warning("Exception while parsing conference element :: " + ex.getMessage());
 			throw ex;
 		}		
-	}
+	} //end of extractConference
 
 	/**
 	 * Returns the pubmeId of this article 
@@ -414,7 +422,7 @@ public class ArticleParser {
 	 */
 	public String getPubmedId(){
 		return this.pubmedId;
-	}
+	} //end of getPubmedId
 	
 	
 	/**
@@ -443,7 +451,6 @@ public class ArticleParser {
 		String articleTitle = null;
 		String abstractText = null;
 		try {
-		extractPubmedId(articleMeta);
 		articleTitle = getArticleTitle(articleMeta);
 		abstractText = getAbstractText(articleMeta);
 		extractPubDate(articleMeta);
@@ -452,7 +459,7 @@ public class ArticleParser {
 			LOGGER.warning("Exception while parsing article-meta element for article details :: " + ex.getMessage());
 			throw ex;
 		}	
-	}	
+	} //end of extractArticlemeta
 	
 	/**
 	 * extractPubDate<br/>
@@ -574,7 +581,6 @@ public class ArticleParser {
 	 * @param articleMeta
 	 * @return
 	 */
-	
 	private String getAbstractText(Element articleMeta) {
 		String abstractStr = null;
 		NodeList abstractElements = null;
@@ -586,10 +592,11 @@ public class ArticleParser {
 		}
 		abstractElements = null;
 		return (abstractStr);
-	}
+	} //end of getAbstractText
 
+	
 	/**
-	 * Retrieves Article tile from the Article meta.  Since the title
+	 * Retrieves Article title from the Article meta.  Since the title
 	 * group is optional in the schema, if there is no title for the article,
 	 * this method will return null.
 	 * 
@@ -859,7 +866,7 @@ public class ArticleParser {
 			LOGGER.warning("Exception while parsing Keyword element :: " + ex.getMessage());
 			throw ex;
 		}
-	}
+	} //end of extractKeyWords
 
 	/**
 	 * Extracts author information form the XML file . Author information is
