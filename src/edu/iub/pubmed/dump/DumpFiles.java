@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 import edu.iub.pubmed.utils.Constants;
 
@@ -20,6 +21,7 @@ import edu.iub.pubmed.utils.Constants;
  *
  */
 public class DumpFiles {
+	private static final Logger LOGGER = Logger.getLogger("PubmedMining");
 	String dumpDirectory = null;
 	String articleFile = null;            // an entry for each article
 	String keywordFile = null;            // keywords used to describe the articles
@@ -57,37 +59,41 @@ public class DumpFiles {
 	 * 
 	 * @throws Exception - if file Not found
 	 */
-	public String createDump(List<String> values, String dumpFile,
+	public String createDump(List<String> values, String dumpFileName,
 			String prefix, String initialQuery) throws Exception {
-		if (dumpFile == null || checkFileSize(dumpFile)) {
-			if(dumpFile != null){
-			closeDumpFile(dumpFile);
+		// Check if we should start a new dump file
+		if (dumpFileName == null || checkFileSize(dumpFileName)) {
+			if(dumpFileName != null){
+				closeDumpFile(dumpFileName);
 			}
-			dumpFile = createFileName(prefix);
-			writeToFile(initialQuery, values, dumpFile);
-		} else {
-			writeToFile(null, values, dumpFile);
+			dumpFileName = createFileName(prefix); //start a new dump file
+			writeToFile(initialQuery, values, dumpFileName);
+		} else { //just append to the existing file
+			writeToFile(null, values, dumpFileName);
 		}
-		return dumpFile;
-	}
+		return dumpFileName;
+	} //end of createDump
 
 	/**
 	 * Appends ";" to the end of the file to make the dump file a valid
 	 *  SQL file .
 	 * 
 	 * @param dumpFile - name of the dumpFile
-	 * @throws IOException - if file doesnt exist
+	 * @throws IOException - if file doesn't exist
 	 */
 	private void closeDumpFile(String dumpFile) throws IOException {
+		PrintWriter out = null;
 		if(dumpFile != null){
 			try {
-				PrintWriter out = new PrintWriter(new BufferedWriter(
+				out = new PrintWriter(new BufferedWriter(
 					new FileWriter(dumpFile, true))); 
 				out.print(Constants.QUERY_CLOSING_CHARACTER);
 				out.flush();
 			}catch (IOException e) {
 				e.printStackTrace();
 				throw e;
+			} finally {
+				try{out.close();}catch(Exception e){}
 			}
 		}
 		
@@ -138,33 +144,40 @@ public class DumpFiles {
 	 * for this method . The given file is either new dump file or existing dump file . In case 
 	 * of new file , before appending the values initial insert query "INSERT INTO (tableName) VALUES"
 	 * is added and then values are appended .<br>
-	 * <br>
+	 * <br/>
 	 * Initial Query is used to check whether given file is new or existing . If not null , initial query and 
-	 * first set of values of are appended initially else all the values are directly appened
+	 * first set of values of are appended initially else all the values are directly appended.
+	 * <br/>
+	 * The List passed as a parameter will be cleaned out as part of the print process.
 	 * 
 	 * @param initialQuery - Initial insert query
 	 * @param values - list of values to be inserted into table
 	 * @param fileName - name of the dump file 
-	 * @throws Exception - If file not found.
+	 * @throws Exception - If file not found or there is an error accessing the list.
 	 */
-	public void writeToFile(String initialQuery, List<String> values,
-			String fileName) throws Exception {
-		int startIndex = 0;
+	public void writeToFile(String initialQuery, List<String> values, String fileName) throws Exception {
+		PrintWriter out = null;
+		if (values == null || values.isEmpty() ) {
+			LOGGER.severe("DumpFiles-writeToFile: called with an arraylist of values that was null or empty.");
+			return;
+		}
 		try {
-			PrintWriter out = new PrintWriter(new BufferedWriter(
+			out = new PrintWriter(new BufferedWriter(
 					new FileWriter(fileName, true)));
 			if (initialQuery != null) {
 				out.print(initialQuery);
-				out.print(values.get(startIndex++));
+				out.print(values.remove(0));
 			}
-			for (; startIndex < values.size(); startIndex++) {
+			while (!values.isEmpty() ) {
 				out.println(",");
-				out.print(values.get(startIndex));
+				out.print(values.remove(0));
 			}
 			out.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw e;
+		} finally {
+			try{out.close();} catch(Exception e){}
 		}
 	}
 
