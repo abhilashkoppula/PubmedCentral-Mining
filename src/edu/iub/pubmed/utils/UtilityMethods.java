@@ -19,6 +19,7 @@ public static String formatString(String givenString){
 		formattedString = givenString.toLowerCase().trim();
 		//formattedString = formattedString.replaceAll("[\\n,\\.,*]", " ");
 		formattedString = formattedString.replaceAll("[\\n,*]", " ");
+		formattedString = formattedString.replace("\\", "");
 		formattedString = formattedString.replace("  ", " ");
 		formattedString = formattedString.replace("'", "");
 	}
