@@ -417,11 +417,13 @@ public class ArticleParser {
 	} //end of extractConference
 
 	/**
-	 * Returns the pubmeId of this article 
+	 * Returns the pubmeId of this article and its type with a colon between them
+	 * This is done in case IDs of different types (e.g., pmid and pmc) have the
+	 * same ID.
 	 * @return - pubmedId
 	 */
 	public String getPubmedId(){
-		return this.pubmedId;
+		return (pubmedId + ":" + idType);
 	} //end of getPubmedId
 	
 	
