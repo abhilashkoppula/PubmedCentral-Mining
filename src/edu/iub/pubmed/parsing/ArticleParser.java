@@ -60,6 +60,7 @@ public class ArticleParser {
 	Map<String,Double> refValues = null;
 	private PubmedDump dumpCreator = null;
 	private IDGenerator idGenerator = null;
+	private HashSet<String> articleCategories = null;   // used to track if an article contains the same category more than once
 
 	/**
 	 * Static initializer to create document factory 
@@ -111,15 +112,22 @@ public class ArticleParser {
 	 * @throws Exception 
 	 */
 	public void parse() throws Exception {
+		NodeList rootElements = null;
 		Element articleMeta = null;
 
 		try {
-			articleMeta = (Element) document.getElementsByTagName(
-					"article-meta").item(0);
+			rootElements = document.getElementsByTagName("article-meta");
+			if (rootElements.getLength() > 1) {
+				LOGGER.severe("ArticleParser-parse: the file " + fileName +
+						" contained " + rootElements.getLength() + 
+						" article metadata elements, but we only processed the first one.");
+			}
+			articleMeta = (Element) rootElements.item(0);
 			extractConference(articleMeta);
 			extractVolume(document);
 			extractArticlemeta(articleMeta);
 			extractAuthors(articleMeta);
+			articleCategories = new HashSet<String>();
 			extractCategories(articleMeta);
 			extractKeyWords(articleMeta);
 			extractPubmedRef(document);
@@ -129,6 +137,9 @@ public class ArticleParser {
 			LOGGER.log(Level.SEVERE,"Exception while parsing {0} and discarding this file",new Object[]{fileName});
 			ex.printStackTrace();
 			throw ex;
+		} finally {
+			try {articleCategories.clear();} catch(Exception e){}
+			articleCategories = null;
 		}
 	}
 	/**
@@ -307,8 +318,8 @@ public class ArticleParser {
 		Element journalMeta = null;
 		
 		try {
-			articleMeta = (Element) document.getElementsByTagName("article-meta").item(0);;
-			journalMeta = (Element) document.getElementsByTagName("journal-meta").item(0);;
+			articleMeta = (Element) document.getElementsByTagName("article-meta").item(0);
+			journalMeta = (Element) document.getElementsByTagName("journal-meta").item(0);
 			Element journalIdElement = (Element) journalMeta.getElementsByTagName("journal-id").item(0);
 			Element journalTitleElement  = (Element) journalMeta.getElementsByTagName("journal-title").item(0);
 			Element publisherNameElement = (Element) journalMeta.getElementsByTagName("publisher-name").item(0);
@@ -337,11 +348,9 @@ public class ArticleParser {
 			volId = idGenerator.getVolumeId(journalTitle, journalId, volume, issue, publisherName);
 			
 		} catch (Exception ex) {
-			LOGGER.warning("Exception while parsing Volume Information "	+ fileName);
+			LOGGER.warning("Exception while parsing Volume Information for " + fileName);
 			ex.printStackTrace();
-			throw ex;
 		}
-		
 	}
 
 	/**
@@ -745,6 +754,12 @@ public class ArticleParser {
 				String subject = subjElement.getTextContent().trim();
 				if (subject.length() == 0)
 					continue;  //we don't want empty subjects
+				if (!articleCategories.add(subject) ) {
+					LOGGER.severe("ArticleParser-processSubjGroup: The file " + fileName + 
+							" contained the subject " + subject + 
+							" as a category within the same subject group more than once");
+					continue;
+				}
 				String categoryId = idGenerator.getCategoryId(subject, parentId);
 				dumpCreator.addToCategoryReferenceValues(pubmedId, idType, categoryId);
 				if (mySubjectId == null)
@@ -755,8 +770,9 @@ public class ArticleParser {
 				processSubjGroup(subCategories.remove(0), mySubjectId);
 			}
 		} catch(Exception ex){
-			LOGGER.severe("Exception while parsing a Category subject group element :: " + ex.getMessage() + 
-					" Category listings for article: " + pubmedId + " may not be complete.");
+			LOGGER.severe("Exception while parsing a Category subject group element : " + ex.getMessage() + 
+					" Category listings for article: " + pubmedId + 
+					" in file " + fileName + " may not be complete.");
 			// No further exception is thrown - articles should not be excluded due
 			// to an exception in parsing the descriptive categories. 
 			//TODO: It would be good to keep a log of the total exceptions by type
