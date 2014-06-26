@@ -1,6 +1,8 @@
 package edu.iub.pubmed.file;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 import edu.iub.pubmed.PubmedCentral;
@@ -36,41 +38,6 @@ public class DatasetOperations {
 		this.pubmedCentral = pubmedCentral;
 	}
 
-	/**
-	 * Traverses the given path recursively and for each file invokes
-	 * {@code pubmedCentral.loadFileToBackend} to parse and load the file . Also
-	 * before processing a directory , values in {@link PubmedDump} are checked
-	 * to avoid out of memory exception
-	 * 
-	 * @param currentPath
-	 *            - path of the directory or file
-	 * @throws Exception
-	 *             - throws exception if parsing of the file fails
-	 */
-	public void traverseAndLoad(String currentPath) throws Exception {
-		File rootDirectory = null;
-		File[] subFiles = null;
-		File currentFile = null;
-		rootDirectory = new File(currentPath);
-		if (rootDirectory != null && rootDirectory.exists()) {
-			subFiles = rootDirectory.listFiles();
-			for (int index = 0; index < subFiles.length; index++) {
-				currentFile = subFiles[index];
-				if (currentFile.isFile()) { // If file parse else get the files of the directory
-					pubmedCentral.loadFileToBackend(currentFile
-							.getAbsolutePath());
-				} else if (currentFile.isDirectory()) {
-					pubmedCentral.checkForDumping(prevDirectory,
-							currentDirectory);
-					currentDirectory = currentFile.getAbsolutePath();
-					LOGGER.info("Processing  directory :: "
-							+ currentFile.getName());
-					traverseAndLoad(currentFile.getAbsolutePath()); // Recursive call to process this directory
-					prevDirectory = currentDirectory;
-				}
-			}
-		}
 
-	}
 
 }
