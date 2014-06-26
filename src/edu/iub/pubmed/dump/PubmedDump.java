@@ -2,9 +2,11 @@ package edu.iub.pubmed.dump;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import edu.iub.pubmed.utils.Constants;
 import edu.iub.pubmed.utils.SQLQueries;
+import edu.iub.pubmed.utils.UtilityMethods;
 import static edu.iub.pubmed.utils.Constants.*;
 
 /**
@@ -15,7 +17,7 @@ import static edu.iub.pubmed.utils.Constants.*;
  *
  */
 public class PubmedDump {
-	
+	private static final Logger LOGGER = Logger.getLogger("PubmedMining");
 	List<String> articleValues = null;
 	List<String> authorValues = null;
 	List<String> authorReferencesValues = null;
@@ -239,7 +241,7 @@ public class PubmedDump {
 		if(value == null)
 			return(value);
 		else
-			return ("'" + value + "'");
+			return ("'" + UtilityMethods.formatString(value) + "'");
 	} //end of formatStringForDb
 	
 	
@@ -340,7 +342,7 @@ public class PubmedDump {
 	public String createDump(List<String> values , String dumpFile , String filePrefix, String initialQuery) throws Exception{
 		if(values != null && values.size() > 0){
 		dumpFile = dumpFiles.createDump(values, dumpFile, filePrefix, initialQuery);
-		values = new ArrayList<String>();
+		values.clear(); //This should have been cleared in the printing - but just in case
 		}
 		return dumpFile;
 	}
