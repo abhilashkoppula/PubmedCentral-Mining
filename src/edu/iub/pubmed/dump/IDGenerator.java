@@ -148,7 +148,7 @@ public class IDGenerator {
 	public String getVolumeId(String journalTitle , String journalId, String volume , String issue , String publisherName){
 		Long volId = null;
 		String volKey = journalId+"-"+volume+"-"+issue;
-		volId = vol_ids.get(volId);
+		volId = vol_ids.get(volKey);
 		if(volId == null){
 			volId = ++volSequence;
 			vol_ids.put(volKey, volId);
