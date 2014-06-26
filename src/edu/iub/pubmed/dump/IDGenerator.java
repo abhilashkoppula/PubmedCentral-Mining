@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public class IDGenerator {
 		
-	public  long keywodIDSequence = 999;
+	public  long keywordIDSequence = 999;
 	public  long categoryIDSequence = 9999;
 	public  long authorIDSequence = 9;
 	public  long confSequence = 999999;
@@ -67,8 +67,8 @@ public class IDGenerator {
 	}
 
 	/**
-	 * Generates Id for this keyword . If keyword doesnt exist in the keyword_ids ,
-	 * new id is created and also inserted into keyword table
+	 * Generates Id for this keyword . If keyword doesn't exist in the keyword_ids ,
+	 * a new id is created and also inserted into the keyword table.
 	 * 
 	 * @param keyword - keyword Text
 	 * @return - generated Id for give keyword
@@ -78,12 +78,12 @@ public class IDGenerator {
 		Long keywordId = null;
 		keywordId = keyword_ids.get(keyword);
 		if (keywordId == null) {
-			keywordId = ++keywodIDSequence;
+			keywordId = new Long(++keywordIDSequence);
 			keyword_ids.put(keyword, keywordId);
-			pubmedDump.addToKeyWordValues(String.valueOf(keywordId), keyword);
+			pubmedDump.addToKeyWordValues(keywordId.toString(), keyword);
 		}
 			
-		return String.valueOf(keywordId);
+		return (keywordId.toString());
 	}
 
 	/**
