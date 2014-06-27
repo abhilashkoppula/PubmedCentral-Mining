@@ -25,6 +25,7 @@ public class Constants {
 	public static final String PROPERTY_KEYWORDS = "keywords";
 	public static final String PROPERTY_WEIGHT = "weight";
 	public static final String PROPERTY_PRIOR = "prior";
+	public static final int ARTICLE_ID_HASHMAP_FLOOR = 200000;
 	
 	// Delimiter for DUMP files
 	public static final String DELIMITER = ",";
