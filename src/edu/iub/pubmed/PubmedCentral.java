@@ -41,6 +41,7 @@ public class PubmedCentral {
 		pubmedDump = new PubmedDump();
 		idGenerator = new IDGenerator(pubmedDump);
 		graphDelegator = new GraphDelegator();
+		articleIds = new HashSet<String>(Constants.ARTICLE_ID_HASHMAP_FLOOR);
 	}
 
 	
@@ -76,35 +77,40 @@ public class PubmedCentral {
 	 */
 	public void traverseAndLoad(String currentPath) throws Exception {
 		File currentDirectory = null;
-		ArrayList<File> directoriesToProcess = new ArrayList<File>();
-		articleIds = new HashSet<String>();
-			
-		currentDirectory = new File(currentPath);
-		if (!checkDirectoryExists(currentDirectory) )
-			return;
-		//While there are directories, process them
-		directoriesToProcess.add(currentDirectory);
-		while (!directoriesToProcess.isEmpty()) {
-			currentDirectory = directoriesToProcess.remove(0);
-			LOGGER.info("Processing  directory :: " + currentDirectory.getName() );
-			// Process This directory
-			File[] subFiles = currentDirectory.listFiles();
-			for (File currentFile: subFiles) {
+		ArrayList<File> directoriesToProcess = null;
+		
+		try {
+			directoriesToProcess = new ArrayList<File>();
+			currentDirectory = new File(currentPath);
+			if (!checkDirectoryExists(currentDirectory) )
+				return;
+			//While there are directories, process them
+			directoriesToProcess.add(currentDirectory);
+			while (!directoriesToProcess.isEmpty()) {
+				currentDirectory = directoriesToProcess.remove(0);
+				LOGGER.info("Processing  directory :: " + currentDirectory.getName() );
+				// Process This directory
+				File[] subFiles = currentDirectory.listFiles();
+				for (File currentFile: subFiles) {
 
-				if (currentFile.isFile()) { // If file, then parse  
-					loadFileToBackend(currentFile.getAbsolutePath());
-				} else if (currentFile.isDirectory()) { 
-					//add directory to list of directories to process
-					directoriesToProcess.add(currentFile);
-					//						currentDirectory = currentFile.getAbsolutePath();
-					//						prevDirectory = currentDirectory;
-				}
-				// check if we need to dump after processing this directory
-				checkForDumping();
-			} //loop through contents of the directory
-			articleIds.clear();  //done with this journal
-		} //process all directories
-		articleIds = null;
+					if (currentFile.isFile()) { // If file, then parse  
+						loadFileToBackend(currentFile.getAbsolutePath());
+					} else if (currentFile.isDirectory()) { 
+						//add directory to list of directories to process
+						directoriesToProcess.add(currentFile);
+						//						currentDirectory = currentFile.getAbsolutePath();
+						//						prevDirectory = currentDirectory;
+					}
+					// check if we need to dump after processing this directory
+					checkForDumping();
+				} //loop through contents of the directory
+			} //process all directories
+		} finally {
+			try {directoriesToProcess.clear();}catch(Exception e){}
+			directoriesToProcess = null;
+			try {articleIds.clear();}catch(Exception e){}
+			articleIds = null;
+		}
 	} //end of traverseAndLoad
 			
 		
@@ -138,6 +144,7 @@ public class PubmedCentral {
 					" from file " + fileName +
 					" already exist is in the dataset and was not processed again.");
 			}
+			articleParser.clear();
 			articleParser = null;
 		} catch (Exception ex) {
 			LOGGER.severe("Exception while parsing ::" + ex.getMessage());
