@@ -56,8 +56,9 @@ public class ArticleParser {
 	private String pubDateType = null; 
 	private String confId = null;
 	private String volId = null;
-	Set<String> uniqueKeyWords = null;
-	Map<String,Double> refValues = null;
+	private Set<String> uniqueKeyWords = null;
+	private HashSet<String> uniqueAuthors = null;
+	private Map<String,Double> refValues = null;
 	private PubmedDump dumpCreator = null;
 	private IDGenerator idGenerator = null;
 	private HashSet<String> articleCategories = null;   // used to track if an article contains the same category more than once
@@ -122,6 +123,19 @@ public class ArticleParser {
 		return;
 	} //end of constructor
 
+	/**
+	 * clear<br/>
+	 * This method clears out all maps and arraylists so we can
+	 * clean up.
+	 */
+	public void clear() {
+		try{uniqueKeyWords.clear();}catch(Exception e){}
+		try{refValues.clear();}catch(Exception e){}
+		try{articleCategories.clear();}catch(Exception e){}
+		try{uniqueAuthors.clear();}catch(Exception e){}
+		dom4jDoc = null;
+		articleMeta = null;
+	} //end of clear
 	
 	/**
 	 * Parse the XML file and extracts all the required values 
@@ -884,6 +898,7 @@ public class ArticleParser {
 			contributors = (NodeList) articleMeta.getElementsByTagName(Constants.CONTRIBUTOR_GROUP);
 			if (contributors.getLength() == 0)
 				return; //we have no authors
+			uniqueAuthors = new HashSet<String>();  //used to make sure each author is only added once per article
 			// process each contribution group (based on the
 			// schema there can be multiple contribution groups).
 			for (int i = 0; i < contributors.getLength();i++) {
@@ -947,7 +962,18 @@ public class ArticleParser {
 				} //done checking for an affilaition
 				// Get an ID for the author
 				String authorId = idGenerator.getAuthorId(firstName, lastName, email, affiliation);
-				dumpCreator.addToAuthorReferenceValues(pubmedId, idType, authorId);
+				// Since there are cases where the same author is listed as a contributor
+				// more than once in the same article, we need to check this author has 
+				// not been added already.
+				if (uniqueAuthors.add(authorId))
+					dumpCreator.addToAuthorReferenceValues(pubmedId, idType, authorId);
+				else
+					LOGGER.warning("ArticleParser-processContributorGroup: The author with ID = "  + 
+							authorId + " was listed more than once for file " + fileName + 
+							". first name: " + firstName + 
+							", last name = " + lastName + 
+							", email = " + email + 
+							", and affiliation = " + affiliation);
 			} //end of loop through the contributors
 		} catch (Exception ex) {
 			LOGGER.severe("Exception while parsing an author contributor group for the file: " + 
