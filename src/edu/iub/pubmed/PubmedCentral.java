@@ -26,7 +26,7 @@ public class PubmedCentral {
 	static final Logger LOGGER = Logger.getLogger(Constants.LOGGER_NAME);
 	private IDGenerator idGenerator = null;
 	private PubmedDump pubmedDump = null;
-	private GraphDelegator graphDelegator = null;
+//	private GraphDelegator graphDelegator = null;
 	HashSet<String> articleIds = null;
 	
 //	private DatasetOperations datasetOperations = null;
@@ -40,7 +40,7 @@ public class PubmedCentral {
 	public PubmedCentral() {
 		pubmedDump = new PubmedDump();
 		idGenerator = new IDGenerator(pubmedDump);
-		graphDelegator = new GraphDelegator();
+//		graphDelegator = new GraphDelegator();
 		articleIds = new HashSet<String>(Constants.ARTICLE_ID_HASHMAP_FLOOR);
 	}
 
@@ -58,9 +58,10 @@ public class PubmedCentral {
 		traverseAndLoad(datasetPath);
 		pubmedDump.dumpRemaining(); // To dump the last values
 		LOGGER.log(Level.INFO, "Completed parsing and loading of the dataset");
-		LOGGER.log(Level.INFO, "Pruning the graphs for better performance");
-		graphDelegator.removeNonPubmedCentralNodes();
-		LOGGER.log(Level.INFO, "Completed Dataset loading and Graph creation");
+//		LOGGER.log(Level.INFO, "Pruning the graphs for better performance");
+//		graphDelegator.removeNonPubmedCentralNodes();
+//		LOGGER.log(Level.INFO, "Completed Dataset loading and Graph creation");
+		LOGGER.log(Level.INFO, "Completed Dataset loading");
 	} //end of load
 	
 	
@@ -136,9 +137,9 @@ public class PubmedCentral {
 			if (articleIds.add(articleId) ){
 				articleParser.parse();
 				LOGGER.log(Level.FINEST,"Parsing of {0} successfull ", fileName);
-				graphDelegator.updateGraph(articleParser.getPubmedId(),
-						articleParser.getKeywords(),
-						articleParser.getCitations());
+//				graphDelegator.updateGraph(articleParser.getPubmedId(),
+//						articleParser.getKeywords(),
+//						articleParser.getCitations());
 			} else {
 				LOGGER.warning("Article ID: " + articleId + 
 					" from file " + fileName +
