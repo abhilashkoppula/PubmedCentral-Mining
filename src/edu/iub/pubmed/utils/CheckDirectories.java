@@ -19,7 +19,7 @@ import java.util.TreeSet;
  *
  */
 public class CheckDirectories {
-	private static final String PROCESSING_PREFIX = "INFO: Processing directory :: ";
+	private static final String PROCESSING_PREFIX = "INFO: Processing  directory :: ";
 	private static final int PREFIX_LENGTH = PROCESSING_PREFIX.length();
 
 	public static void CheckLog(String logName, String dataName, String outputName) throws Exception {
@@ -65,10 +65,13 @@ public class CheckDirectories {
 					else
 						hasFiles = true;
 				}
+				String dirName = dir.getName();
 				if (hasFiles) {  //check if we processed it
-					String dirName = dir.getName();
 					if (!processed.contains(dirName))
 						notProcessed.put(dirName, contents.length);
+				} else {
+					// if there are no files, remove it from the processed list
+					processed.remove(dirName);
 				}
 				contents = null;
 			} //Print to the output file
@@ -78,11 +81,12 @@ public class CheckDirectories {
 			if (notProcessed.size() == 0)
 				pw.println("No directories were not processed.");
 			else {
-				pw.println("Directories not processed (with file counts)");
+				pw.println("Directories not processed (with file counts): " + notProcessed.size() );
 				for (Entry<String, Integer> entry: notProcessed.entrySet() ) {
 					pw.println(entry.getKey() + "   (" + entry.getValue() + ")"); 
 				}
 			}
+			pw.flush();
 			return;
 		} finally {
 			try{br.close();}catch(Exception e){}
@@ -100,7 +104,7 @@ public class CheckDirectories {
 	 * Argument 2: The full path and file name of the directory containing the data directories
 	 * Argument 3: The full path and file name of the output file to be created
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		String logFileName = args[0];
 		String dataDirName = args[1];
 		String outputFileName = args[2];
