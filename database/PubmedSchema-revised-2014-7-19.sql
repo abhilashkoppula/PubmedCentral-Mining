@@ -104,7 +104,7 @@ CREATE TABLE category_reference (
   id_type            TINYINT       NOT NULL,
   category_id        INT           NOT NULL,
   -- dummy_col          VARCHAR(10)   DEFAULT NULL,
-  PRIMARY KEY (pubmed_id, type_id, category_id)
+  PRIMARY KEY (pubmed_id, id_type, category_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
