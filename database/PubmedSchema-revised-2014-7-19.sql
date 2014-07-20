@@ -307,7 +307,6 @@ CREATE TABLE article_meshterm (
   qualifier_id       INT           NOT NULL, -- if there is no qualifier for a descriptor, this will be 0
   major_topic        TINYINT       DEFAULT 0, -- 0 = not a major topic
   PRIMARY KEY (pubmed_id, id_type, descriptor_id, qualifier_id),
-  KEY topic (descriptor_name,qualifier_name),
   KEY topic_id ( descriptor_id, qualifier_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
