@@ -101,7 +101,7 @@ DROP TABLE IF EXISTS category_reference;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE category_reference (
   pubmed_id          VARCHAR(45)   NOT NULL,
-  type_id            TINYINT       NOT NULL,
+  id_type            TINYINT       NOT NULL,
   category_id        INT           NOT NULL,
   -- dummy_col          VARCHAR(10)   DEFAULT NULL,
   PRIMARY KEY (pubmed_id, type_id, category_id)
@@ -179,16 +179,16 @@ CREATE TABLE conference (
 -- Table structure for table `filtered_pubmed_reference`
 --
 
-DROP TABLE IF EXISTS filtered_pubmed_reference;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE filtered_pubmed_reference (
-  pubmed_id int(11) NOT NULL,
-  cited_pubmed_id int(11) NOT NULL,
-  count int(11) DEFAULT NULL,
-  PRIMARY KEY (pubmed_id,cited_pubmed_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS filtered_pubmed_reference;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!40101 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE filtered_pubmed_reference (
+--   pubmed_id int(11) NOT NULL,
+--   cited_pubmed_id int(11) NOT NULL,
+--   count int(11) DEFAULT NULL,
+--   PRIMARY KEY (pubmed_id,cited_pubmed_id)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `keyword`
@@ -224,59 +224,59 @@ CREATE TABLE keyword_reference (
 -- Table structure for table `original_keywords`
 --
 
-DROP TABLE IF EXISTS original_keywords;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE original_keywords (
-  original_keyword varchar(200) DEFAULT NULL,
-  group_id int(11) DEFAULT NULL,
-  frequency int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS original_keywords;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!40101 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE original_keywords (
+--   original_keyword varchar(200) DEFAULT NULL,
+--   group_id int(11) DEFAULT NULL,
+--   frequency int(11) DEFAULT NULL
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `pubmed_reference`
 --
 
-DROP TABLE IF EXISTS pubmed_reference;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE pubmed_reference (
-  pubmed_id int(11) NOT NULL DEFAULT '0',
-  cited_pubmed_id int(11) NOT NULL DEFAULT '0',
-  count int(11) DEFAULT NULL,
-  PRIMARY KEY (pubmed_id,cited_pubmed_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS pubmed_reference;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!40101 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE pubmed_reference (
+--   pubmed_id int(11) NOT NULL DEFAULT '0',
+--   cited_pubmed_id int(11) NOT NULL DEFAULT '0',
+--   count int(11) DEFAULT NULL,
+--   PRIMARY KEY (pubmed_id,cited_pubmed_id)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `stemmed_keywords`
 --
 
-DROP TABLE IF EXISTS stemmed_keywords;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE stemmed_keywords (
-  group_id int(11) DEFAULT NULL,
-  stemmed_word varchar(200) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS stemmed_keywords;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!40101 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE stemmed_keywords (
+--   group_id int(11) DEFAULT NULL,
+--   stemmed_word varchar(200) DEFAULT NULL
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `unstructured_keyword_group`
 --
 
-DROP TABLE IF EXISTS unstructured_keyword_group;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE unstructured_keyword_group (
-  id int(11) NOT NULL,
-  pubmed_id varchar(45) NOT NULL,
-  unstructured_keyword varchar(256) NOT NULL,
-  PRIMARY KEY (id,pubmed_id),
-  KEY fk_pubmed_id_idx (pubmed_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
+-- DROP TABLE IF EXISTS unstructured_keyword_group;
+-- /*!40101 SET @saved_cs_client     = @@character_set_client */;
+-- /*!40101 SET character_set_client = utf8mb4 */;
+-- CREATE TABLE unstructured_keyword_group (
+--   id int(11) NOT NULL,
+--   pubmed_id varchar(45) NOT NULL,
+--   unstructured_keyword varchar(256) NOT NULL,
+--   PRIMARY KEY (id,pubmed_id),
+--   KEY fk_pubmed_id_idx (pubmed_id)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-- /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `volume`
@@ -303,9 +303,7 @@ DROP TABLE IF EXISTS article_meshterm;
 CREATE TABLE article_meshterm (
   pubmed_id          VARCHAR(45)   NOT NULL,
   id_type            TINYINT       NOT NULL,
-  descriptor_name    VARCHAR(45)   NOT NULL,
   descriptor_id      INT           NOT NULL, 
-  qualifier_name     VARCHAR(45)   DEFAULT NULL, -- not all descriptors will have a qualifier
   qualifier_id       INT           NOT NULL, -- if there is no qualifier for a descriptor, this will be 0
   major_topic        TINYINT       DEFAULT 0, -- 0 = not a major topic
   PRIMARY KEY (pubmed_id, id_type, descriptor_id, qualifier_id),
