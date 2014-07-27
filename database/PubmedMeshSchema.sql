@@ -152,7 +152,7 @@ DROP TABLE IF EXISTS concept;
 -- the casin_name will always be NULL.
 CREATE TABLE concept (
   concept_id         INT           NOT NULL,
-  concept_name       VARCHAR(100)  NOT NULL,
+  concept_name       VARCHAR(150)  NOT NULL,
   scope_note         TEXT          DEFAULT NULL,
   casin_name         TEXT          DEFAULT NULL,
   PRIMARY KEY (concept_id)
