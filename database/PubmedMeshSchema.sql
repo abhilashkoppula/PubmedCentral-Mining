@@ -27,7 +27,8 @@ CREATE TABLE mesh_keywords (
   descriptor_id      INT           NOT NULL,
   qualifier_id       INT           NOT NULL DEFAULT 0, -- default to 0 for not a qualifier
   major_topic        TINYINT       NOT NULL DEFAULT 0, -- 1 = true, a major topic of the paper, 0 = false
-  PRIMARY KEY (pubmed_id, id_type, descriptor_id, qualifier_id)
+  PRIMARY KEY (pubmed_id, id_type, descriptor_id, qualifier_id),
+  KEY topic_id (descriptor_id, qualifier_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -40,7 +41,7 @@ DROP TABLE IF EXISTS mesh_descriptor;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE mesh_descriptor (
   descriptor_id      INT           NOT NULL,
-  descriptor_name    VARCHAR(45)   NOT NULL,
+  descriptor_name    VARCHAR(150)  NOT NULL,
   date_established   DATETIME      DEFAULT NULL,-- date first used in the MeSH vocabulary
   date_created       DATETIME      DEFAULT NULL,
   PRIMARY KEY (descriptor_id)
@@ -151,7 +152,7 @@ DROP TABLE IF EXISTS concept;
 -- the casin_name will always be NULL.
 CREATE TABLE concept (
   concept_id         INT           NOT NULL,
-  concept_name       VARCHAR(45)   NOT NULL,
+  concept_name       VARCHAR(100)  NOT NULL,
   scope_note         TEXT          DEFAULT NULL,
   casin_name         TEXT          DEFAULT NULL,
   PRIMARY KEY (concept_id)
@@ -173,7 +174,7 @@ DROP TABLE IF EXISTS concept_term;
 CREATE TABLE concept_term (
   concept_id         INT           NOT NULL,
   term_id            INT           NOT NULL,
-  term_name          VARCHAR(45)   NOT NULL,
+  term_name          VARCHAR(150)  NOT NULL,
   preferred_flag     TINYINT       NOT NULL DEFAULT 0, -- 1 = true (preferred), 0 = false
   PRIMARY KEY (concept_id, term_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
