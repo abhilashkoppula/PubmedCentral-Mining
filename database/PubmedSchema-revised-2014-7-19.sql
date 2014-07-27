@@ -296,22 +296,6 @@ CREATE TABLE volume (
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-
-DROP TABLE IF EXISTS article_meshterm;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8mb4 */;
-CREATE TABLE article_meshterm (
-  pubmed_id          VARCHAR(45)   NOT NULL,
-  id_type            TINYINT       NOT NULL,
-  descriptor_id      INT           NOT NULL, 
-  qualifier_id       INT           NOT NULL, -- if there is no qualifier for a descriptor, this will be 0
-  major_topic        TINYINT       DEFAULT 0, -- 0 = not a major topic
-  PRIMARY KEY (pubmed_id, id_type, descriptor_id, qualifier_id),
-  KEY topic_id ( descriptor_id, qualifier_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
